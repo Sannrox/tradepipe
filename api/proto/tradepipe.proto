@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "api/proto/login/login.proto";
+import "api/proto/timeline/timeline.proto";
+
+
+
+package grpc;
+
+option go_package = "github.com/Sannrox/tradepipe/pkg/grpc";
+
+
+service TradePipe {
+    rpc Login(login.Credentials) returns (login.ProcessId){}
+    rpc Verify(login.TwoFA) returns (login.TwoFAReturn){}
+    rpc DownloadAll(timeline.DownloadAllAsk) returns (timeline.DownloadAllReturn){}
+}

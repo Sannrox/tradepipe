@@ -1,0 +1,136 @@
+openapi: "3.0.0"
+info: 
+  version: 1.0.0 
+  title: tradepipe-api
+  description: This Api is used to manage the tradepipe application
+servers:
+  - url: http://localhost:3000/v1/
+paths:
+  /login:
+    post:
+      summary: Login
+      description: Login to the application
+      operationId: login
+      requestBody:
+        description: Login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcID'
+        '401':
+          description: Login failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcID'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcID'
+  /{processId}/verify:
+    post:
+      summary: Verify
+      description: Verify the user
+      operationId: verify
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Verify'
+      responses:
+        '200':
+          description: Verify successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verified'
+        '401':
+          description: Verify failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verified'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verified'
+  /{processId}/downloadAll:
+   post:
+      summary: Download
+      description: Download all the files
+      operationId: downloadAll
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Download successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Downloaded'
+        '401':
+          description: Download failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Downloaded'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Downloaded'
+components:
+  schemas:
+    Login:
+      type: object
+      properties:
+        number:
+          type: string
+        pin:
+          type: string
+    ProcID:
+      type: object
+      properties:
+        token:
+          type: string
+    Verify:
+      type: object
+      properties:
+        token:
+          type: string
+    Verified:
+      type: object
+      properties:
+        message:
+          type: string
+    Downloaded:
+      type: object
+      properties:
+        message:
+          type: string
+ 
