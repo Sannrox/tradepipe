@@ -90,7 +90,7 @@ func (s *FakeServer) Login(w http.ResponseWriter, r *http.Request) {
 			}
 			if data["phoneNumber"] != s.number || data["pin"] != s.pin {
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(fmt.Sprintf("Got number: %s, pin: %s", data["number"], data["pin"])))
+				w.Write([]byte(fmt.Sprintf("Got number: %s, pin: %s", s.number , s.pin)))
 				return
 			}
 		}
