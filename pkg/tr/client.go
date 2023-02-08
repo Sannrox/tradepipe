@@ -213,11 +213,7 @@ func (api *APIClient) NewWebSocketConnection(dataChan chan Message) error {
 					return
 				}
 				if strings.Contains(string(message), "connected") {
-					logrus.Debug("Connected:", string(message))
 					connected <- true
-					return
-				} else {
-					logrus.Fatal(fmt.Errorf("something went wrong %s", string(message)))
 					return
 				}
 			}
