@@ -6,6 +6,30 @@ info:
 servers:
   - url: http://localhost:3000/v1/
 paths:
+  /alive:
+    get:
+      summary: Status
+      description: Status of the server
+      operationId: alive
+      responses:
+        '200':
+          description: Server available 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alive'
+        '401':
+          description: Server forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alive'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alive'
   /login:
     post:
       summary: Login
@@ -24,19 +48,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcID'
+                $ref: '#/components/schemas/ProcessId'
         '401':
           description: Login failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcID'
+                $ref: '#/components/schemas/ProcessId'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcID'
+                $ref: '#/components/schemas/ProcessId'
   /{processId}/verify:
     post:
       summary: Verify
@@ -74,11 +98,81 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Verified'
-  /{processId}/downloadAll:
-   post:
-      summary: Download
-      description: Download all the files
-      operationId: downloadAll
+  /{processId}/timeline:
+   get:
+      summary:  timeline 
+      description: Loads the complete timeline
+      operationId: timeline
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+          required: true
+        - name: since
+          in: query 
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: Timeline successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+        '401':
+          description: Timeline failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+  /{processId}/timelinedetails:
+   get:
+      summary:  timelinedetails
+      description: Loads the complete timeline details
+      operationId: timelineDetails
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+          required: true
+        - name: since
+          in: query 
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: Timeline successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineDetails'
+        '401':
+          description: Timeline failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineDetails'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineDetails'
+  /{processId}/postions:
+   get:
+      summary:  postions
+      description: Loads your postions
+      operationId: postions
       parameters:
         - in: path
           name: processId
@@ -87,37 +181,37 @@ paths:
           required: true
       responses:
         '200':
-          description: Download successful
+          description: Timeline successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Downloaded'
+                $ref: '#/components/schemas/Postions'
         '401':
-          description: Download failed
+          description: Timeline failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Downloaded'
+                $ref: '#/components/schemas/Postions'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Downloaded'
+                $ref: '#/components/schemas/Postions'
 components:
   schemas:
     Login:
+      required:
+        - number 
+        - pin
       type: object
       properties:
         number:
           type: string
         pin:
           type: string
-    ProcID:
-      type: object
-      properties:
-        token:
-          type: string
+    ProcessId:
+      type: string
     Verify:
       type: object
       properties:
@@ -128,9 +222,32 @@ components:
       properties:
         message:
           type: string
-    Downloaded:
+    Timeline:
       type: object
       properties:
         message:
           type: string
- 
+        timeline:
+          type: array
+    TimelineDetails:
+      type: object
+      properties:
+        message:
+          type: string
+        timelineDetails:
+          type: array
+    Positions:
+      type: object
+      properties:
+        message:
+          type: string
+        positions:
+          type: array
+    Alive:
+      type: object
+      properties:
+        status: 
+          type: string
+        serverTime: 
+          type: integer
+          format: int64

@@ -7,10 +7,11 @@ import (
 	"net"
 	"time"
 
-	pb "github.com/Sannrox/tradepipe/pkg/grpc"
-	"github.com/Sannrox/tradepipe/pkg/grpc/login"
-	"github.com/Sannrox/tradepipe/pkg/grpc/timeline"
-	"github.com/Sannrox/tradepipe/pkg/tr"
+	pb "github.com/Sannrox/tradepipe/grpc"
+	"github.com/Sannrox/tradepipe/grpc/login"
+	"github.com/Sannrox/tradepipe/grpc/portfolio"
+	"github.com/Sannrox/tradepipe/grpc/timeline"
+	"github.com/Sannrox/tradepipe/tr"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -36,7 +37,7 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 	return &login.ProcessId{ProcessId: client.GetProcessID()}, nil
 }
 
-func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFA) (*login.TwoFAReturn, error) {
+func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.TwoFAReturn, error) {
 	client := s.client[in.ProcessId]
 	err := client.VerifyLogin(int(in.VerifyCode))
 	if err != nil {
@@ -46,7 +47,7 @@ func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFA) (*login.TwoFAR
 	return &login.TwoFAReturn{}, nil
 }
 
-func (s *GRPCServer) DownloadAll(ctx context.Context, in *timeline.DownloadAll) (*timeline.DownloadAllResponse, error) {
+func (s *GRPCServer) Timeline(ctx context.Context, in *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
 	client := s.client[in.ProcessId]
 	data := make(chan tr.Message)
 
@@ -56,10 +57,73 @@ func (s *GRPCServer) DownloadAll(ctx context.Context, in *timeline.DownloadAll) 
 	}
 
 	time.Sleep(10 * time.Second)
-	dl := tr.NewDownloader(*client)
-	dl.DownloadAll(ctx, data)
+	tl := tr.NewTimeLine(client)
 
-	return &timeline.DownloadAllResponse{ProcessId: client.GetProcessID()}, nil
+	tl.SetSinceTimestamp(int64(in.GetSinceTimestamp()))
+	err = tl.LoadTimeLine(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := tl.GetTimeLineEventsAsBytes()
+	if err != nil {
+		return nil, err
+	}
+	return &timeline.ResponseTimeline{
+		ProcessId: in.ProcessId,
+		Items:     bytes,
+	}, nil
+}
+
+func (s *GRPCServer) TimelineDetails(ctx context.Context, in *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
+	client := s.client[in.ProcessId]
+	data := make(chan tr.Message)
+
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		return nil, err
+	}
+
+	time.Sleep(10 * time.Second)
+	tl := tr.NewTimeLine(client)
+
+	tl.SetSinceTimestamp(int64(in.GetSinceTimestamp()))
+	err = tl.LoadTimeLine(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := tl.GetTimeLineDetailsAsBytes()
+	if err != nil {
+		return nil, err
+	}
+	return &timeline.ResponseTimeline{
+		ProcessId: in.ProcessId,
+		Items:     bytes,
+	}, nil
+}
+
+func (s *GRPCServer) Positions(ctx context.Context, in *portfolio.RequestPositions) (*portfolio.ResponsePositions, error) {
+	client := s.client[in.ProcessId]
+	data := make(chan tr.Message)
+
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		return nil, err
+	}
+
+	time.Sleep(10 * time.Second)
+	p := tr.NewPortfolio(client)
+	err = p.LoadPortfolio(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := p.GetPositionsAsBytes()
+	if err != nil {
+		return nil, err
+	}
+	return &portfolio.ResponsePositions{
+		ProcessId: in.ProcessId,
+		Postions:  bytes,
+	}, nil
 }
 
 func (s *GRPCServer) Run() error {

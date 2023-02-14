@@ -1,7 +1,7 @@
 # Version: 1.0
 
 
-.PHONY: test lint deps format build coverage coverhtml
+.PHONY: test lint deps format build coverage coverhtml grpc rest 
 
 
 GO ?= $(shell which go)
@@ -50,6 +50,7 @@ $(GOTEST_DIR):
 
 test: $(GOTESTSUM) $(GOTEST_DIR) ## Run unit-tests
 	@echo ">> running test for core"
+	./scripts/test/pre-test-steps
 	CGO_ENABLED=1 $(GOTEST) $(test-flags) $(GOOPTS) $(PKGS)
 
 # GOLANG CI LINT
@@ -114,8 +115,6 @@ changelog: ## Generates changelog for last updates
 
 lint: ## run all the lint tools
 	$(GOLANGCI_LINT) run
-
-
 rest: ## Generate go code from openapi spec
 	./scripts/generate/rest
 grpc: ## Generate go code from protobuf files
@@ -123,4 +122,6 @@ grpc: ## Generate go code from protobuf files
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+clean:
+	rm -rf "./tmp" "./timelineEventsWithDocs.json" "./timelineEventsWithoutDocs.json" "./tradepip.txt"
 

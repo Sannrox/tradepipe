@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	test "github.com/Sannrox/tradepipe/pkg/grpc/testing"
+	test "github.com/Sannrox/tradepipe/helper/testhelpers/fakegrpcclient"
 )
 
 func TestGrpcServer(t *testing.T) {

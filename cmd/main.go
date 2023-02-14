@@ -7,8 +7,8 @@ import (
 	"github.com/Sannrox/tradepipe/cmd/cli"
 	"github.com/Sannrox/tradepipe/cmd/grpc"
 	"github.com/Sannrox/tradepipe/cmd/rest"
-	"github.com/Sannrox/tradepipe/pkg/logger"
-	_ "github.com/Sannrox/tradepipe/pkg/logger"
+	"github.com/Sannrox/tradepipe/logger"
+	_ "github.com/Sannrox/tradepipe/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +26,8 @@ type RootOptions struct {
 	GRPC    bool
 	HTTP    bool
 	Debug   bool
+	LogFile string
+	Done    chan struct{}
 }
 
 func NewRootCmd() *cobra.Command {
@@ -40,33 +42,31 @@ func NewRootCmd() *cobra.Command {
 			if rootOptions.Debug {
 				logger.Enable()
 			}
+			if err := logger.SetLogFile(rootOptions.LogFile); err != nil {
+				return err
+			}
 			switch {
 			case rootOptions.GRPC:
 				// Run GRPC server
 
 				server := grpc.NewGRPCServer()
-				if err := server.Run(); err != nil {
-					return err
-				}
+				return server.Run()
 			case rootOptions.HTTP:
 				// Run HTTP server
 				server := rest.NewRestServer()
-				if err := server.Run(); err != nil {
-					return err
-				}
+				return server.Run(rootOptions.Done, "8080")
 			default:
 				// Run CLI
 				if len(os.Args) < 2 {
 					_ = cmd.Help()
 					return nil
 				}
-				cli.ExecuteCLI(os.Args)
+				return cli.ExecuteCLI(os.Args)
 			}
-
-			return nil
 		},
 	}
 
+	cmd.Flags().StringVarP(&rootOptions.LogFile, "out", "o", "tradepip.txt", "Outputfile")
 	cmd.Flags().BoolVarP(&rootOptions.Verbose, "verbose", "v", false, "verbose output")
 	cmd.Flags().BoolVarP(&rootOptions.GRPC, "grpc", "g", false, "run grpc server")
 	cmd.Flags().BoolVarP(&rootOptions.HTTP, "http", "r", false, "run http server")
@@ -77,7 +77,5 @@ func NewRootCmd() *cobra.Command {
 
 func main() {
 	cmd := NewRootCmd()
-	if err := cmd.Execute(); err != nil {
-		panic(err)
-	}
+	cmd.Execute()
 }

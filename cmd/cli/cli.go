@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sannrox/tradepipe/pkg/tr"
+	"github.com/Sannrox/tradepipe/tr"
 )
 
 func ExecuteCLI(args []string) error {
@@ -47,8 +47,11 @@ func ExecuteCLI(args []string) error {
 	}
 
 	time.Sleep(20 * time.Second)
-	dl := tr.NewDownloader(*client)
-	dl.DownloadAll(ctx, data)
+	p := tr.NewPortfolio(client)
+	p.LoadPortfolio(ctx, data)
+
+	// dl := tr.NewDownloader(*client)
+	// dl.DownloadAll(ctx, data)
 
 	return nil
 }

@@ -2,15 +2,21 @@ syntax = "proto3";
 
 
 package timeline; 
-option go_package = "github.com/Sannrox/tradepipe/pkg/grpc/timeline";
+option go_package = "github.com/Sannrox/tradepipe/grpc/timeline";
 
 
-message DownloadAllAsk {
-   string processId = 1;
+message RequestTimeline {
+   string processId = 1; 
+   oneof timeline {
+      double sinceTimestamp = 2; 
+   }
 }
 
-message DownloadAllReturn {
+message ResponseTimeline {
    string processId = 1;
    string error = 2;
+   bytes items = 3;
 }
+
+
 
