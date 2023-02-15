@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"testing"
 	"time"
@@ -19,7 +20,13 @@ func TestRestServer(t *testing.T) {
 	s := NewRestServer()
 	s.SetBaseURL("https://localhost:443")
 	s.SetWsURL("wss://localhost:443")
-	s.SetOverWriteTls(true)
+	setClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	s.SetBaseHTTPClient(setClient)
+
 	FakeServer := fake.NewFakeServer("+49111111111", "1111", "1234567890", "1234")
 	FakeServer.GenerateData()
 
@@ -27,7 +34,7 @@ func TestRestServer(t *testing.T) {
 	go s.Run(done, FakeHTTPServer)
 
 	time.Sleep(10 * time.Second)
-	// t.Run("Login test", Login)
+	t.Run("Login test", Login)
 	close(done)
 }
 
@@ -35,12 +42,20 @@ func Login(t *testing.T) {
 	fakeC := fakeClient.NewFakeClient()
 	fakeC.SetCredentials("+49111111111", "1111")
 
+	setClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	fakeC.SetBaseURL("http://localhost:" + FakeHTTPServer)
-	client, err := fakeC.SetupClient(&http.Client{})
+	client, err := fakeC.SetupClient(setClient)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	t.Log(fakeC.Username)
+	t.Log(fakeC.Password)
 	resp, err := client.LoginWithResponse(context.Background(), rest.Login{
 		Number: fakeC.Username,
 		Pin:    fakeC.Password,

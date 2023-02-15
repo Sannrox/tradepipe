@@ -110,7 +110,6 @@ func (api *APIClient) GetProcessID() string {
 }
 
 func (api *APIClient) Login() error {
-	logrus.Debug("Try Login")
 	if api.Creds == nil {
 		return fmt.Errorf("no credentials set")
 	}

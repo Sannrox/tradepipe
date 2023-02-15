@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -18,11 +19,12 @@ import (
 )
 
 type RestServer struct {
-	client       map[string]*tr.APIClient
-	Lock         sync.Mutex
-	baseURL      string
-	wsURL        string
-	overWriteTls bool
+	client         map[string]*tr.APIClient
+	Lock           sync.Mutex
+	baseURL        string
+	wsURL          string
+	overWriteTls   bool
+	baseHTTPClient *http.Client
 }
 
 func NewRestServer() *RestServer {
@@ -40,6 +42,9 @@ func (s *RestServer) SetBaseURL(url string) {
 
 func (s *RestServer) SetWsURL(url string) {
 	s.wsURL = url
+}
+func (s *RestServer) SetBaseHTTPClient(client *http.Client) {
+	s.baseHTTPClient = client
 }
 
 func (s *RestServer) SetOverWriteTls(overWriteTls bool) {
@@ -62,6 +67,9 @@ func (s *RestServer) Alive(ctx echo.Context) error {
 func (s *RestServer) Login(ctx echo.Context) error {
 	client := tr.NewAPIClient()
 
+	if s.baseHTTPClient != nil {
+		client.SetHTTPClient(s.baseHTTPClient)
+	}
 	if s.baseURL != "" {
 		client.SetBaseURL(s.baseURL)
 	}
@@ -70,6 +78,7 @@ func (s *RestServer) Login(ctx echo.Context) error {
 		client.SetWSBaseURL(s.wsURL)
 	}
 	if s.overWriteTls {
+		logrus.Info("Overwriting TLS")
 		client.SetTLSConfig(&tls.Config{
 			InsecureSkipVerify: true,
 		})
