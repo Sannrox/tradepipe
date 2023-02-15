@@ -113,7 +113,7 @@ func (s *RestServer) Verify(ctx echo.Context, processId string) error {
 		return err
 	}
 
-	intVar, err := strconv.Atoi(*newVerify.Token)
+	intVar, err := strconv.Atoi(newVerify.Token)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,9 @@ func (s *RestServer) Timeline(ctx echo.Context, processId string, params rest.Ti
 	}
 
 	tl := tr.NewTimeLine(client)
-	tl.SetSinceTimestamp(int64(*params.Since))
+	if params.Since != nil {
+		tl.SetSinceTimestamp(int64(*params.Since))
+	}
 
 	err = tl.LoadTimeLine(context.Background(), data)
 	if err != nil {
@@ -185,6 +187,31 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	reponse := rest.TimelineDetails{}
 	b, err := json.Marshal(timelineDetails)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+	err = json.Unmarshal(b, &reponse)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	return ctx.JSON(200, reponse)
+}
+
+func (s *RestServer) Positions(ctx echo.Context, processId string) error {
+	s.Lock.Lock()
+	client := s.client[processId]
+	s.Lock.Unlock()
+
+	postions := tr.NewPortfolio(client)
+
+	positions, err := postions.GetPositionsAsBytes()
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	reponse := rest.Positions{}
+	b, err := json.Marshal(positions)
 	if err != nil {
 		return ctx.JSON(500, err)
 	}

@@ -33,6 +33,12 @@ type Login struct {
 	Pin    string `json:"pin"`
 }
 
+// Positions defines model for Positions.
+type Positions struct {
+	Message   *string        `json:"message,omitempty"`
+	Positions *[]interface{} `json:"positions,omitempty"`
+}
+
 // ProcessId defines model for ProcessId.
 type ProcessId = string
 
@@ -55,7 +61,7 @@ type Verified struct {
 
 // Verify defines model for Verify.
 type Verify struct {
-	Token *string `json:"token,omitempty"`
+	Token string `json:"token"`
 }
 
 // TimelineParams defines parameters for Timeline.
@@ -155,6 +161,9 @@ type ClientInterface interface {
 
 	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Positions request
+	Positions(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Timeline request
 	Timeline(ctx context.Context, processId string, params *TimelineParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -193,6 +202,18 @@ func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.
 
 func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Positions(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPositionsRequest(c.Server, processId)
 	if err != nil {
 		return nil, err
 	}
@@ -314,6 +335,40 @@ func NewLoginRequestWithBody(server string, contentType string, body io.Reader) 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPositionsRequest generates requests for Positions
+func NewPositionsRequest(server string, processId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "processId", runtime.ParamLocationPath, processId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/%s/positions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -524,6 +579,9 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
+	// Positions request
+	PositionsWithResponse(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*PositionsResponse, error)
+
 	// Timeline request
 	TimelineWithResponse(ctx context.Context, processId string, params *TimelineParams, reqEditors ...RequestEditorFn) (*TimelineResponse, error)
 
@@ -578,6 +636,30 @@ func (r LoginResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoginResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PositionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Positions
+	JSON401      *Positions
+	JSON500      *Positions
+}
+
+// Status returns HTTPResponse.Status
+func (r PositionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PositionsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -680,6 +762,15 @@ func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJ
 		return nil, err
 	}
 	return ParseLoginResponse(rsp)
+}
+
+// PositionsWithResponse request returning *PositionsResponse
+func (c *ClientWithResponses) PositionsWithResponse(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*PositionsResponse, error) {
+	rsp, err := c.Positions(ctx, processId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePositionsResponse(rsp)
 }
 
 // TimelineWithResponse request returning *TimelineResponse
@@ -787,6 +878,46 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ProcessId
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePositionsResponse parses an HTTP response from a PositionsWithResponse call
+func ParsePositionsResponse(rsp *http.Response) (*PositionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PositionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Positions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Positions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Positions
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -925,6 +1056,9 @@ type ServerInterface interface {
 	// Login
 	// (POST /login)
 	Login(ctx echo.Context) error
+	// positions
+	// (GET /{processId}/positions)
+	Positions(ctx echo.Context, processId string) error
 	// timeline
 	// (GET /{processId}/timeline)
 	Timeline(ctx echo.Context, processId string, params TimelineParams) error
@@ -956,6 +1090,22 @@ func (w *ServerInterfaceWrapper) Login(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Login(ctx)
+	return err
+}
+
+// Positions converts echo context to params.
+func (w *ServerInterfaceWrapper) Positions(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "processId" -------------
+	var processId string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "processId", runtime.ParamLocationPath, ctx.Param("processId"), &processId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter processId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.Positions(ctx, processId)
 	return err
 }
 
@@ -1055,6 +1205,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/alive", wrapper.Alive)
 	router.POST(baseURL+"/login", wrapper.Login)
+	router.GET(baseURL+"/:processId/positions", wrapper.Positions)
 	router.GET(baseURL+"/:processId/timeline", wrapper.Timeline)
 	router.GET(baseURL+"/:processId/timelinedetails", wrapper.TimelineDetails)
 	router.POST(baseURL+"/:processId/verify", wrapper.Verify)
@@ -1064,19 +1215,20 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

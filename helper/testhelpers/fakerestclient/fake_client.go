@@ -61,7 +61,7 @@ func (c *FakeClient) Verify(ctx context.Context, processId string, token string)
 	}
 
 	_, err = restClient.VerifyWithResponse(ctx, processId, rest.Verify{
-		Token: &token,
+		Token: token,
 	},
 	)
 	if err != nil {

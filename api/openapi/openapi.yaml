@@ -168,11 +168,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TimelineDetails'
-  /{processId}/postions:
+  /{processId}/positions:
    get:
-      summary:  postions
-      description: Loads your postions
-      operationId: postions
+      summary:  positions
+      description: Loads your positions
+      operationId: positions
       parameters:
         - in: path
           name: processId
@@ -185,19 +185,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Postions'
+                $ref: '#/components/schemas/Positions'
         '401':
           description: Timeline failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Postions'
+                $ref: '#/components/schemas/Positions'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Postions'
+                $ref: '#/components/schemas/Positions'
 components:
   schemas:
     Login:
@@ -213,6 +213,8 @@ components:
     ProcessId:
       type: string
     Verify:
+      required:
+        - token 
       type: object
       properties:
         token:
