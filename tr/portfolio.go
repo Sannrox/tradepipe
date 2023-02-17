@@ -39,15 +39,14 @@ func (p *Portfolio) LoadPortfolio(ctx context.Context, data chan Message) error 
 	if err != nil {
 		return err
 	}
-
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case msg := <-data:
-			logrus.Info(msg)
 			if msg.Subscription["type"] == "portfolio" {
 				var portfolio RawPortfolio
+				logrus.Info(msg.Payload)
 				b, err := json.Marshal(msg.Payload)
 				if err != nil {
 					return err

@@ -149,18 +149,18 @@ func (s *RestServer) Timeline(ctx echo.Context, processId string, params rest.Ti
 	}
 
 	timeline := tl.GetTimeLineEvents()
+	resptimeline := rest.Timeline{}
 
-	reponse := rest.Timeline{}
 	b, err := json.Marshal(timeline)
 	if err != nil {
 		return ctx.JSON(500, err)
 	}
-	err = json.Unmarshal(b, &reponse)
+	err = json.Unmarshal(b, &resptimeline.Timeline)
 	if err != nil {
 		return ctx.JSON(500, err)
 	}
 
-	return ctx.JSON(200, reponse)
+	return ctx.JSON(200, resptimeline)
 }
 
 func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params rest.TimelineDetailsParams) error {
@@ -172,30 +172,43 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	err := client.NewWebSocketConnection(data)
 	if err != nil {
+		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
 	tl := tr.NewTimeLine(client)
-	tl.SetSinceTimestamp(int64(*params.Since))
+	if params.Since != nil {
+		tl.SetSinceTimestamp(int64(*params.Since))
+	}
 
 	err = tl.LoadTimeLine(context.Background(), data)
 	if err != nil {
+		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
-	timelineDetails := tl.GetTimeLineEventsWithDocs()
+	err = tl.LoadTimeLineDetails(context.Background(), data)
+	if err != nil {
+		logrus.Debug(err)
+		return ctx.JSON(500, err)
+	}
 
-	reponse := rest.TimelineDetails{}
+	timelineDetails := tl.GetTimeLineDetails()
+
+	response := rest.TimelineDetails{}
+
 	b, err := json.Marshal(timelineDetails)
 	if err != nil {
+		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
-	err = json.Unmarshal(b, &reponse)
+	err = json.Unmarshal(b, &response.TimelineDetails)
 	if err != nil {
+		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
-	return ctx.JSON(200, reponse)
+	return ctx.JSON(200, response)
 }
 
 func (s *RestServer) Positions(ctx echo.Context, processId string) error {
@@ -203,24 +216,32 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 	client := s.client[processId]
 	s.Lock.Unlock()
 
+	data := make(chan tr.Message)
+
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		logrus.Debug(err)
+		return ctx.JSON(500, err)
+	}
 	postions := tr.NewPortfolio(client)
+
+	err = postions.LoadPortfolio(context.Background(), data)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
 
 	positions, err := postions.GetPositionsAsBytes()
 	if err != nil {
 		return ctx.JSON(500, err)
 	}
 
-	reponse := rest.Positions{}
-	b, err := json.Marshal(positions)
-	if err != nil {
-		return ctx.JSON(500, err)
-	}
-	err = json.Unmarshal(b, &reponse)
+	response := rest.Positions{}
+	err = json.Unmarshal(positions, &response.Positions)
 	if err != nil {
 		return ctx.JSON(500, err)
 	}
 
-	return ctx.JSON(200, reponse)
+	return ctx.JSON(200, response)
 }
 
 func (s *RestServer) Run(done chan struct{}, port string) error {

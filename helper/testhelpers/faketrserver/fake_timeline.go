@@ -2,8 +2,7 @@ package testing
 
 import (
 	"fmt"
-	"strconv"
-	"time"
+	"math/rand"
 
 	"github.com/Sannrox/tradepipe/helper/testhelpers/random"
 )
@@ -69,7 +68,7 @@ func NewFakeTimelines() *FakeRawTimelines {
 func (t *FakeRawTimelines) GenerateRawTimelines(sets int) {
 	for i := 0; i <= sets; i++ {
 		timeline := FakeRawTimeline{}
-		timeline.GenerateTimeline(5)
+		timeline.GenerateTimeline(10)
 		t.Add(timeline)
 	}
 }
@@ -99,15 +98,19 @@ func (t *FakeRawTimelines) Next(after string) FakeRawTimeline {
 	return FakeRawTimeline{}
 }
 
-func NewFakeTimelineDetail() *FakeTimelineDetails {
-	return &FakeTimelineDetails{}
-}
-
 func (t *FakeRawTimeline) GenerateTimeline(sets int) {
 	timeline := FakeRawTimeline{}
+	var typ string
+	switch rand.Intn(2) {
+	case 0:
+		typ = "timeline"
+	case 1:
+		typ = "timelineDetail"
+	}
+
 	for j := 0; j < sets; j++ {
 		timeline.Data = append(timeline.Data, TimeLineEvent{
-			Type: "timeline_event",
+			Type: typ,
 			Data: struct {
 				ID          string        `json:"id"`
 				Timestamp   int64         `json:"timestamp"`
@@ -132,8 +135,6 @@ func (t *FakeRawTimeline) GenerateTimeline(sets int) {
 		})
 
 	}
-	timeline.Cursors.After = strconv.FormatInt(time.Now().Unix(), 36)
-
 	*t = timeline
 }
 
@@ -149,13 +150,93 @@ func (t *FakeRawTimeline) Clear() {
 	t.Data = []TimeLineEvent{}
 }
 
-func (t *FakeTimelineDetails) GenerateTimelineDetail() {
+func NewFakeTimelineDetails() *FakeTimelineDetails {
+	return &FakeTimelineDetails{}
+}
+func (t *FakeTimelineDetails) GenerateTimelineDetailById(id string) TimelineDetail {
+	for _, detail := range *t {
+		if detail.ID == id {
+			return detail
+		}
+	}
+	return TimelineDetail{}
 }
 
-func (t *FakeTimelineDetails) GenerateTimelineDetailWithDoc() {
+func (t *FakeTimelineDetails) GenerateTimelineDetail(event *TimeLineEvent) {
+
+	var detail TimelineDetail
+	if event.Type == "timelineDetail" {
+		detail = t.GenerateTimelineDetailWithDoc(event.Data.ID, rand.Intn(5))
+		t.Add(detail)
+	} else {
+		detail = t.GenerateTimelineDetailWithoutDoc(event.Data.ID)
+		t.Add(detail)
+	}
 
 }
 
-func (t *FakeTimelineDetails) GenerateTimelineDetailWithDocAndAction() {
+func (t *FakeTimelineDetails) GenerateTimelineDetailWithDoc(id string, sections int) TimelineDetail {
+	detail := TimelineDetail{}
+	detail.ID = id
+	detail.TitleText = random.GenerateRandomString(10)
+	detail.SubtitleText = random.GenerateRandomString(10)
+	for i := 0; i < sections; i++ {
+		detail.Sections = append(detail.Sections, struct {
+			Data      []interface{}
+			Type      string `json:"type"`
+			Title     string `json:"title"`
+			Documents []Doc  `json:"documents"`
+		}{
+			Data:      []interface{}{},
+			Type:      "section",
+			Title:     random.GenerateRandomString(10),
+			Documents: []Doc{},
+		})
+		for j := 0; j < rand.Intn(5); j++ {
+			detail.Sections[i].Documents = append(detail.Sections[i].Documents, Doc{
+				Title:  random.GenerateRandomString(10),
+				Detail: random.GenerateRandomString(10),
+				Action: struct {
+					Type    string `json:"type"`
+					Payload string `json:"payload"`
+				}{
+					Type:    "action",
+					Payload: random.GenerateRandomString(10),
+				},
+				ID:          random.GenerateRandomString(10),
+				PostboxType: "postboxType",
+			})
+		}
+	}
+	return detail
 
+}
+
+func (t *FakeTimelineDetails) GenerateTimelineDetailWithoutDoc(id string) TimelineDetail {
+	detail := TimelineDetail{}
+	detail.ID = id
+	detail.TitleText = random.GenerateRandomString(10)
+	detail.SubtitleText = random.GenerateRandomString(10)
+	for i := 0; i < rand.Intn(5); i++ {
+		detail.Sections = append(detail.Sections, struct {
+			Data      []interface{}
+			Type      string `json:"type"`
+			Title     string `json:"title"`
+			Documents []Doc  `json:"documents"`
+		}{
+			Data:      []interface{}{},
+			Type:      "section",
+			Title:     random.GenerateRandomString(10),
+			Documents: []Doc{},
+		})
+	}
+	return detail
+}
+
+func (t *FakeTimelineDetails) Add(detail TimelineDetail) {
+	*t = append(*t, detail)
+}
+
+func (t *FakeTimelineDetails) Len() int {
+	return len(*t)
 }

@@ -35,8 +35,8 @@ type Login struct {
 
 // Positions defines model for Positions.
 type Positions struct {
-	Message   *string        `json:"message,omitempty"`
-	Positions *[]interface{} `json:"positions,omitempty"`
+	Message   *string       `json:"message,omitempty"`
+	Positions []interface{} `json:"positions"`
 }
 
 // ProcessId defines model for ProcessId.
@@ -44,14 +44,14 @@ type ProcessId = string
 
 // Timeline defines model for Timeline.
 type Timeline struct {
-	Message  *string        `json:"message,omitempty"`
-	Timeline *[]interface{} `json:"timeline,omitempty"`
+	Message  *string       `json:"message,omitempty"`
+	Timeline []interface{} `json:"timeline"`
 }
 
 // TimelineDetails defines model for TimelineDetails.
 type TimelineDetails struct {
-	Message         *string        `json:"message,omitempty"`
-	TimelineDetails *[]interface{} `json:"timelineDetails,omitempty"`
+	Message         *string       `json:"message,omitempty"`
+	TimelineDetails []interface{} `json:"timelineDetails"`
 }
 
 // Verified defines model for Verified.
@@ -1215,20 +1215,20 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

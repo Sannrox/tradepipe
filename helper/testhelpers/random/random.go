@@ -5,8 +5,9 @@ import (
 	"time"
 )
 
+var letter = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 func GenerateRandomString(n int) string {
-	var letter = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 	b := make([]rune, n)
 	for i := range b {
@@ -23,4 +24,19 @@ func GenerateRandomYear() int {
 func GenerateRandomMonth() time.Month {
 	rand.Seed(time.Now().UnixNano())
 	return time.Month(rand.Intn(12) + 1)
+}
+
+func GenerateRandomeISIN() string {
+	// 1 2  Countrie-code
+	b := make([]rune, 12)
+	b[0] = letter[rand.Intn(len(letter))]
+	b[1] = letter[rand.Intn(len(letter))]
+	// 3 11 National Securities Identifying Number
+	for i := 2; i < 10; i++ {
+		b[i] = letter[rand.Intn(len(letter))]
+	}
+	// 12 12 Check Digit
+	b[11] = letter[rand.Intn(len(letter))]
+
+	return string(b)
 }

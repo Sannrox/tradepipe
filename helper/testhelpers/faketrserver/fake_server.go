@@ -17,22 +17,26 @@ import (
 )
 
 type FakeServer struct {
-	Timeline     *FakeRawTimelines
-	Subscriptios *FakeSubscriptionStore
-	verifyCode   string
-	number       string
-	pin          string
-	ProcessId    string
+	Timeline        *FakeRawTimelines
+	TimelineDetails *FakeTimelineDetails
+	Subscriptios    *FakeSubscriptionStore
+	Portfolio       *FakePortfolio
+	verifyCode      string
+	number          string
+	pin             string
+	ProcessId       string
 }
 
 func NewFakeServer(number, pin, processId, verifyCode string) *FakeServer {
 	return &FakeServer{
-		Timeline:     NewFakeTimelines(),
-		Subscriptios: NewFakeSubscriptionStore(),
-		number:       number,
-		pin:          pin,
-		ProcessId:    processId,
-		verifyCode:   verifyCode,
+		Timeline:        NewFakeTimelines(),
+		TimelineDetails: NewFakeTimelineDetails(),
+		Subscriptios:    NewFakeSubscriptionStore(),
+		Portfolio:       NewFakePortfolio(),
+		number:          number,
+		pin:             pin,
+		ProcessId:       processId,
+		verifyCode:      verifyCode,
 	}
 }
 func OverWriteClient() *http.Client {
@@ -52,7 +56,13 @@ func OverWriteTSLClientConfig() *tls.Config {
 }
 
 func (s *FakeServer) GenerateData() {
-	s.Timeline.GenerateRawTimelines(5)
+	s.Timeline.GenerateRawTimelines(1)
+	for _, timeline := range *s.Timeline {
+		for _, event := range timeline.Data {
+			s.TimelineDetails.GenerateTimelineDetail(&event)
+		}
+	}
+	s.Portfolio.GenerateFakePortfolio()
 	logrus.Info("Fake Data generated")
 	logrus.Debug(s.Timeline)
 }
@@ -209,6 +219,8 @@ func (s *FakeServer) WebSocket(w http.ResponseWriter, r *http.Request) {
 
 		var returner string
 
+		logrus.Info("Message received: " + string(msg))
+
 		switch strings.TrimSpace(parsedMessage[0]) {
 		case "connect":
 			logrus.Info("Connection Incoming")
@@ -243,14 +255,13 @@ func (s *FakeServer) WebSocket(w http.ResponseWriter, r *http.Request) {
 				case "timeline":
 					logrus.Info("Timeline Subscription")
 					var data FakeRawTimeline
-					if message["after"] == "" {
+					if message["after"] == nil {
 						data = s.Timeline.First()
 					} else {
 						data = s.Timeline.Next(message["after"].(string))
 					}
 					timelineJSON, err := json.Marshal(data)
 
-					logrus.Info("TEST")
 					if err != nil {
 						err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d %s %s", subscriptionId, E.String(), err)))
 						if err != nil {
@@ -260,6 +271,45 @@ func (s *FakeServer) WebSocket(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(timelineJSON))
+				case "timelineDetail":
+					logrus.Info("Timeline Detail Subscription")
+					id := message["id"]
+					if id == nil {
+						err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d %s %s", subscriptionId, E.String(), "No id provided")))
+						if err != nil {
+							logrus.Error(err)
+							return
+						}
+						continue
+					} else {
+						detail := s.TimelineDetails.GenerateTimelineDetailById(id.(string))
+						detailJSON, err := json.Marshal(detail)
+						if err != nil {
+							err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d %s %s", subscriptionId, E.String(), err)))
+							if err != nil {
+								logrus.Error(err)
+								return
+							}
+							continue
+						}
+						returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(detailJSON))
+					}
+
+				case "portfolio":
+					logrus.Info("Portfolio Subscription")
+					portfolio := s.Portfolio.GetPortfolio()
+					logrus.Info(portfolio)
+					portfolioJSON, err := json.Marshal(portfolio)
+					if err != nil {
+						err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d %s %s", subscriptionId, E.String(), err)))
+						if err != nil {
+							logrus.Error(err)
+							return
+						}
+						continue
+					}
+					returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(portfolioJSON))
+
 				default:
 					returner = fmt.Sprintf("%d %s %s", subscriptionId, E.String(), "Unknown subscription type")
 				}

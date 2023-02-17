@@ -39,6 +39,10 @@ func TestRestServer(t *testing.T) {
 	t.Run("Verify test", Verify)
 
 	t.Run("Timeline test", Timeline)
+
+	t.Run("TimelineDetail test", TimelineDetails)
+
+	t.Run("Portfolio test", Portfolio)
 	close(done)
 }
 
@@ -119,11 +123,93 @@ func Timeline(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if *resp.JSON200.Message != "" {
-		t.Fatal(*resp.JSON200.Message)
-	}
-	if *resp.JSON200.Timeline != nil {
-		t.Fatal(*resp.JSON200.Timeline)
+	if resp.JSON500 != nil {
+		t.Fatal("Error in response")
 	}
 
+	if resp.JSON401 != nil {
+		t.Fatal("Error in response")
+	}
+
+	timeline := resp.JSON200.Timeline
+
+	if len(timeline) == 0 {
+		t.Fatal("No timeline data")
+	}
+	t.Log(timeline...)
+
+}
+
+func TimelineDetails(t *testing.T) {
+	fakeC := fakeClient.NewFakeClient()
+	fakeC.SetCredentials("+49111111111", "1111")
+
+	setClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	fakeC.SetBaseURL("http://localhost:" + FakeHTTPServer)
+	client, err := fakeC.SetupClient(setClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := client.TimelineDetailsWithResponse(context.Background(), "1234567890", &rest.TimelineDetailsParams{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.JSON500 != nil {
+		t.Fatalf("Error in response %+v | %+v", resp.JSON500.Message, string(resp.Body))
+	}
+
+	if resp.JSON401 != nil {
+		t.Fatal("Error in response")
+	}
+
+	timelineDetail := resp.JSON200.TimelineDetails
+
+	if len(timelineDetail) == 0 {
+		t.Fatal("No timeline data")
+	}
+	t.Log(timelineDetail...)
+}
+
+func Portfolio(t *testing.T) {
+	fakeC := fakeClient.NewFakeClient()
+	fakeC.SetCredentials("+49111111111", "1111")
+
+	setClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	fakeC.SetBaseURL("http://localhost:" + FakeHTTPServer)
+	client, err := fakeC.SetupClient(setClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := client.PositionsWithResponse(context.Background(), "1234567890")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.JSON500 != nil {
+		t.Fatal("Error in response:", resp.JSON500)
+	}
+
+	if resp.JSON401 != nil {
+		t.Fatal("Error in response")
+	}
+
+	positions := resp.JSON200.Positions
+
+	if len(positions) == 0 {
+		t.Fatal("No portfolio data")
+	}
+	t.Log(positions...)
 }

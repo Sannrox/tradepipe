@@ -181,13 +181,13 @@ paths:
           required: true
       responses:
         '200':
-          description: Timeline successful
+          description: Positions successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Positions'
         '401':
-          description: Timeline failed
+          description: Positions failed
           content:
             application/json:
               schema:
@@ -225,6 +225,8 @@ components:
         message:
           type: string
     Timeline:
+      required:
+        - timeline
       type: object
       properties:
         message:
@@ -232,6 +234,8 @@ components:
         timeline:
           type: array
     TimelineDetails:
+      required:
+        - timelineDetails
       type: object
       properties:
         message:
@@ -239,6 +243,8 @@ components:
         timelineDetails:
           type: array
     Positions:
+      required:
+        - positions
       type: object
       properties:
         message:
