@@ -11,6 +11,9 @@ TEST_PASSWD="test"
 
 
 if [ ! -f "${TARGET_DIR}${PEM}" ] || [ ! -f "${TARGET_DIR}${CERT}" ]; then 
+    if [ ! -d "${TARGET_DIR}" ]; then 
+        mkdir -p "${TARGET_DIR}"
+    fi
     openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
     mv "${PEM}" "${TARGET_DIR}${PEM}"
     mv "${CERT}" "${TARGET_DIR}${CERT}"
