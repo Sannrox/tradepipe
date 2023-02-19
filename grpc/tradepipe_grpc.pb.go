@@ -14,6 +14,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,6 +26,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TradePipeClient interface {
+	Alive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Alive, error)
 	Login(ctx context.Context, in *login.Credentials, opts ...grpc.CallOption) (*login.ProcessId, error)
 	Verify(ctx context.Context, in *login.TwoFAAsks, opts ...grpc.CallOption) (*login.TwoFAReturn, error)
 	Timeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
@@ -38,6 +40,15 @@ type tradePipeClient struct {
 
 func NewTradePipeClient(cc grpc.ClientConnInterface) TradePipeClient {
 	return &tradePipeClient{cc}
+}
+
+func (c *tradePipeClient) Alive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Alive, error) {
+	out := new(Alive)
+	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Alive", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *tradePipeClient) Login(ctx context.Context, in *login.Credentials, opts ...grpc.CallOption) (*login.ProcessId, error) {
@@ -89,6 +100,7 @@ func (c *tradePipeClient) Positions(ctx context.Context, in *portfolio.RequestPo
 // All implementations must embed UnimplementedTradePipeServer
 // for forward compatibility
 type TradePipeServer interface {
+	Alive(context.Context, *emptypb.Empty) (*Alive, error)
 	Login(context.Context, *login.Credentials) (*login.ProcessId, error)
 	Verify(context.Context, *login.TwoFAAsks) (*login.TwoFAReturn, error)
 	Timeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
@@ -101,6 +113,9 @@ type TradePipeServer interface {
 type UnimplementedTradePipeServer struct {
 }
 
+func (UnimplementedTradePipeServer) Alive(context.Context, *emptypb.Empty) (*Alive, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Alive not implemented")
+}
 func (UnimplementedTradePipeServer) Login(context.Context, *login.Credentials) (*login.ProcessId, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
@@ -127,6 +142,24 @@ type UnsafeTradePipeServer interface {
 
 func RegisterTradePipeServer(s grpc.ServiceRegistrar, srv TradePipeServer) {
 	s.RegisterService(&TradePipe_ServiceDesc, srv)
+}
+
+func _TradePipe_Alive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TradePipeServer).Alive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.TradePipe/Alive",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TradePipeServer).Alive(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _TradePipe_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -226,6 +259,10 @@ var TradePipe_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "grpc.TradePipe",
 	HandlerType: (*TradePipeServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Alive",
+			Handler:    _TradePipe_Alive_Handler,
+		},
 		{
 			MethodName: "Login",
 			Handler:    _TradePipe_Login_Handler,

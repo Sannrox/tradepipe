@@ -3,6 +3,7 @@ syntax = "proto3";
 import "api/proto/login/login.proto";
 import "api/proto/timeline/timeline.proto";
 import "api/proto/portfolio/portfolio.proto";
+import "google/protobuf/empty.proto";
 
 
 
@@ -10,11 +11,17 @@ package grpc;
 
 option go_package = "github.com/Sannrox/tradepipe/grpc";
 
+message Alive {
+    string status = 1;
+    int64 serverTime  = 2;
+}
 
 service TradePipe {
+    rpc Alive(google.protobuf.Empty) returns (grpc.Alive){}
     rpc Login(login.Credentials) returns (login.ProcessId){}
     rpc Verify(login.TwoFAAsks) returns (login.TwoFAReturn){}
     rpc Timeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
     rpc TimelineDetails(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
     rpc Positions(portfolio.RequestPositions) returns (portfolio.ResponsePositions){}
 }
+

@@ -50,7 +50,7 @@ func NewRootCmd() *cobra.Command {
 				// Run GRPC server
 
 				server := grpc.NewGRPCServer()
-				return server.Run()
+				return server.Run(rootOptions.Done)
 			case rootOptions.HTTP:
 				// Run HTTP server
 				server := rest.NewRestServer()

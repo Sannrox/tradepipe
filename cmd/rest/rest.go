@@ -265,10 +265,10 @@ func (s *RestServer) Run(done chan struct{}, port string) error {
 		err <- e.Start(":" + port)
 	}(errChan)
 
-	<-done
 	if err := <-errChan; err != nil {
 		return err
 	}
+	<-done
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

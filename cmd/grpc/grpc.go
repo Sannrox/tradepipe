@@ -2,12 +2,17 @@ package grpc
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
+	"sync"
 	"time"
 
 	pb "github.com/Sannrox/tradepipe/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
+
 	"github.com/Sannrox/tradepipe/grpc/login"
 	"github.com/Sannrox/tradepipe/grpc/portfolio"
 	"github.com/Sannrox/tradepipe/grpc/timeline"
@@ -18,14 +23,69 @@ import (
 
 type GRPCServer struct {
 	*pb.UnimplementedTradePipeServer
-	client map[string]*tr.APIClient
+	client         map[string]*tr.APIClient
+	Lock           sync.Mutex
+	baseURL        string
+	wsURL          string
+	overWriteTls   bool
+	baseHTTPClient *http.Client
 }
 
 var port = flag.Int("port", 50051, "The server port")
 
+func NewGRPCServer() *GRPCServer {
+	return &GRPCServer{client: make(map[string]*tr.APIClient),
+		baseURL:      "",
+		wsURL:        "",
+		overWriteTls: false,
+	}
+}
+
+func (s *GRPCServer) SetBaseURL(url string) {
+	s.baseURL = url
+}
+
+func (s *GRPCServer) SetWsURL(url string) {
+	s.wsURL = url
+}
+
+func (s *GRPCServer) SetBaseHTTPClient(client *http.Client) {
+	s.baseHTTPClient = client
+}
+
+func (s *GRPCServer) SetOverWriteTls(overWriteTls bool) {
+	s.overWriteTls = overWriteTls
+}
+
+func (s *GRPCServer) Alive(ctx context.Context, in *emptypb.Empty) (*pb.Alive, error) {
+	res := pb.Alive{}
+	time := time.Now().Unix()
+	status := "OK"
+	res.ServerTime = time
+	res.Status = status
+	return &res, nil
+}
+
 func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.ProcessId, error) {
 	client := tr.NewAPIClient()
-	client.SetCredentials(in.Number, in.Pin)
+
+	if s.baseHTTPClient != nil {
+		client.SetHTTPClient(s.baseHTTPClient)
+	}
+	if s.baseURL != "" {
+		client.SetBaseURL(s.baseURL)
+	}
+
+	if s.wsURL != "" {
+		client.SetWSBaseURL(s.wsURL)
+	}
+	if s.overWriteTls {
+		logrus.Info("Overwriting TLS")
+		client.SetTLSConfig(&tls.Config{
+			InsecureSkipVerify: true,
+		})
+	}
+	client.SetCredentials(in.GetNumber(), in.GetPin())
 
 	err := client.Login()
 	if err != nil {
@@ -68,6 +128,7 @@ func (s *GRPCServer) Timeline(ctx context.Context, in *timeline.RequestTimeline)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Debug(fmt.Sprintf("Timeline: %s", bytes))
 	return &timeline.ResponseTimeline{
 		ProcessId: in.ProcessId,
 		Items:     bytes,
@@ -88,6 +149,10 @@ func (s *GRPCServer) TimelineDetails(ctx context.Context, in *timeline.RequestTi
 
 	tl.SetSinceTimestamp(int64(in.GetSinceTimestamp()))
 	err = tl.LoadTimeLine(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	err = tl.LoadTimeLineDetails(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +191,7 @@ func (s *GRPCServer) Positions(ctx context.Context, in *portfolio.RequestPositio
 	}, nil
 }
 
-func (s *GRPCServer) Run() error {
+func (s *GRPCServer) Run(done chan struct{}) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
@@ -134,12 +199,17 @@ func (s *GRPCServer) Run() error {
 	server := grpc.NewServer()
 	logrus.Infof("server listening at %v", lis.Addr())
 	pb.RegisterTradePipeServer(server, s)
-	if err := server.Serve(lis); err != nil {
-		return fmt.Errorf("failed to serve: %v", err)
-	}
-	return nil
-}
+	var errChan chan error
+	go func(err chan error) {
+		err <- server.Serve(lis)
 
-func NewGRPCServer() *GRPCServer {
-	return &GRPCServer{client: make(map[string]*tr.APIClient)}
+	}(errChan)
+	if err := <-errChan; err != nil {
+		return err
+	}
+
+	<-done
+	server.GracefulStop()
+
+	return nil
 }
