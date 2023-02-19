@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+
+set -eu 
+
+
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+oapi-codegen --generate client,server,types,spec --package rest -o rest/rest.gen.go ./api/openapi/openapi.yaml
