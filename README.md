@@ -16,13 +16,13 @@ Inspired by https://github.com/marzzzello/pytr
 #### Usage
 ```
 # Build the binary 
-$ make build
+$ make tradegrpc
 
 # Run the command 
-$ ./build/bin/tradepipe-<GOOS>-<GOHOSTARCH>-<VERSION>  --grpc 
+$ ./build/bin/tradegrpc-<GOOS>-<GOHOSTARCH>-<VERSION>  --grpc 
 ```
 
-Use the generate client from https://github.com/Sannrox/tradepipe/grpc
+Use the generate client from https://github.com/Sannrox/tradepipe/grpc/pb
 
 For example take a look at this [fakeclient](./helper/testhelpers/fakegrpcclient/fake_client.go)
 ### HTTP server 
@@ -30,10 +30,10 @@ For example take a look at this [fakeclient](./helper/testhelpers/fakegrpcclient
 
 ```
 # Build the binary 
-$ make build
+$ make tradehttp
 
 # Run the command 
-$ ./build/bin/tradepipe-<GOOS>-<GOHOSTARCH>-<VERSION>  --http
+$ ./build/bin/tradehttp-<GOOS>-<GOHOSTARCH>-<VERSION> 
 ```
 Use the [openapi-spec](./api/openapi/openapi.yaml) to build/generate a client
 
@@ -44,7 +44,7 @@ Use the [openapi-spec](./api/openapi/openapi.yaml) to build/generate a client
 
 ```
 # Build the binary 
-$ make build
+$ make tradepipe
 
 # Run the command 
 $ ./build/bin/tradepipe-<GOOS>-<GOHOSTARCH>-<VERSION>  <TR-NUMBER> <TR-PIN>
