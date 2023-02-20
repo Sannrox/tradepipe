@@ -1,10 +1,10 @@
-package rest
+package fakerestclient
 
 import (
 	"context"
 	"net/http"
 
-	"github.com/Sannrox/tradepipe/rest"
+	"github.com/Sannrox/tradepipe/rest/api"
 )
 
 type FakeClient struct {
@@ -33,8 +33,8 @@ func (c *FakeClient) SetCredentials(username, password string) {
 	c.Password = password
 }
 
-func (c *FakeClient) SetupClient(restClient *http.Client) (*rest.ClientWithResponses, error) {
-	return rest.NewClientWithResponses(c.BaseURL, rest.WithHTTPClient(restClient))
+func (c *FakeClient) SetupClient(restClient *http.Client) (*api.ClientWithResponses, error) {
+	return api.NewClientWithResponses(c.BaseURL, api.WithHTTPClient(restClient))
 }
 
 func (c *FakeClient) Login(ctx context.Context) (string, error) {
@@ -43,7 +43,7 @@ func (c *FakeClient) Login(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	resp, err := restClient.LoginWithResponse(ctx, rest.Login{
+	resp, err := restClient.LoginWithResponse(ctx, api.Login{
 		Number: c.Username,
 		Pin:    c.Password,
 	})
@@ -60,7 +60,7 @@ func (c *FakeClient) Verify(ctx context.Context, processId string, token string)
 		return err
 	}
 
-	_, err = restClient.VerifyWithResponse(ctx, processId, rest.Verify{
+	_, err = restClient.VerifyWithResponse(ctx, processId, api.Verify{
 		Token: token,
 	},
 	)
@@ -71,13 +71,13 @@ func (c *FakeClient) Verify(ctx context.Context, processId string, token string)
 	return nil
 }
 
-func (c *FakeClient) Timeline(ctx context.Context, processId string, sinceTimestamp float64) (*rest.Timeline, error) {
+func (c *FakeClient) Timeline(ctx context.Context, processId string, sinceTimestamp float64) (*api.Timeline, error) {
 	restClient, err := c.SetupClient(&c.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	var timestamp *rest.TimelineParams
+	var timestamp *api.TimelineParams
 	if sinceTimestamp != 0 {
 		timestamp.Since = &sinceTimestamp
 	}
@@ -89,13 +89,13 @@ func (c *FakeClient) Timeline(ctx context.Context, processId string, sinceTimest
 	return resp.JSON200, nil
 }
 
-func (c *FakeClient) TimelineDetails(ctx context.Context, processId string, sinceTimestamp float64) (*rest.TimelineDetails, error) {
+func (c *FakeClient) TimelineDetails(ctx context.Context, processId string, sinceTimestamp float64) (*api.TimelineDetails, error) {
 	restClient, err := c.SetupClient(&c.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	var timestamp *rest.TimelineDetailsParams
+	var timestamp *api.TimelineDetailsParams
 	if sinceTimestamp != 0 {
 		timestamp.Since = &sinceTimestamp
 	}

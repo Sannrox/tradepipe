@@ -1,6 +1,10 @@
 # Version: 1.0
 
 
+# We don't need make's built-in rules.
+MAKEFLAGS += --no-builtin-rules
+.SUFFIXES:
+
 .PHONY: test lint deps format build coverage coverhtml grpc rest 
 
 
@@ -94,14 +98,25 @@ fmt: ## Formates the code
 	$(GOLIST) -f {{.Dir}} ./... | xargs $(GOFMT) -w -s -d
 
 
-build: ## Build the binary
-	$(eval TARGET ?=  )
-	@echo ">> building binaries"
-	@if [ -z "$(TARGET)" ] ; then \
-		./scripts/build/binary ;\
-	else \
-		TARGET=$(TARGET) ./scripts/build/binary ;\
-	fi
+define CMD_HELP_INFO
+# Add rules for all directories in cmd/
+#
+# Example:
+#   make  tradepipe tradegrpc tradehttp
+endef
+EXCLUDE_TARGET=
+CMD_TARGET = $(notdir $(abspath $(wildcard cmd/*/)))
+.PHONY: $(CMD_TARGET)
+ifeq ($(PRINT_HELP),y)
+$(CMD_TARGET): ## $(CMD_TARGET)
+	echo "$$CMD_HELP_INFO"
+else
+$(CMD_TARGET): ## $(CMD_TARGET)
+	@echo ">> building $@"
+	scripts/build/binary cmd/$@
+endif
+
+
 
 
 coverage: ## Generate global code coverage report

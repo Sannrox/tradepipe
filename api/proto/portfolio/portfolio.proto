@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package portfolio;
-option go_package = "github.com/Sannrox/tradepipe/grpc/portfolio";
+option go_package = "github.com/Sannrox/tradepipe/grpc/pb/portfolio";
 
 message RequestPositions {
     string processId = 1;

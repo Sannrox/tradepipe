@@ -9,7 +9,7 @@ import (
 
 	fakeClient "github.com/Sannrox/tradepipe/helper/testhelpers/fakerestclient"
 	fake "github.com/Sannrox/tradepipe/helper/testhelpers/faketrserver"
-	"github.com/Sannrox/tradepipe/rest"
+	"github.com/Sannrox/tradepipe/rest/api"
 )
 
 var FakeTRServerPort string = "443"
@@ -31,7 +31,7 @@ func TestRestServer(t *testing.T) {
 	FakeServer := fake.NewFakeServer("+49111111111", "1111", "1234567890", "1234")
 	FakeServer.GenerateData()
 
-	go FakeServer.Run(done, FakeTRServerPort, "../../test/ssl/cert.pem", "../../test/ssl/key.pem")
+	go FakeServer.Run(done, FakeTRServerPort, "../test/ssl/cert.pem", "../test/ssl/key.pem")
 	go s.Run(done, FakeHTTPServer)
 
 	time.Sleep(10 * time.Second)
@@ -44,6 +44,7 @@ func TestRestServer(t *testing.T) {
 
 	t.Run("Portfolio test", Portfolio)
 	close(done)
+	time.Sleep(10 * time.Second)
 }
 
 func Login(t *testing.T) {
@@ -64,7 +65,7 @@ func Login(t *testing.T) {
 
 	t.Log(fakeC.Username)
 	t.Log(fakeC.Password)
-	resp, err := client.LoginWithResponse(context.Background(), rest.Login{
+	resp, err := client.LoginWithResponse(context.Background(), api.Login{
 		Number: fakeC.Username,
 		Pin:    fakeC.Password,
 	})
@@ -93,7 +94,7 @@ func Verify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = client.VerifyWithResponse(context.Background(), "1234567890", rest.Verify{
+	_, err = client.VerifyWithResponse(context.Background(), "1234567890", api.Verify{
 		Token: "1234",
 	})
 	if err != nil {
@@ -118,7 +119,7 @@ func Timeline(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := client.TimelineWithResponse(context.Background(), "1234567890", &rest.TimelineParams{})
+	resp, err := client.TimelineWithResponse(context.Background(), "1234567890", &api.TimelineParams{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +157,7 @@ func TimelineDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := client.TimelineDetailsWithResponse(context.Background(), "1234567890", &rest.TimelineDetailsParams{})
+	resp, err := client.TimelineDetailsWithResponse(context.Background(), "1234567890", &api.TimelineDetailsParams{})
 	if err != nil {
 		t.Fatal(err)
 	}

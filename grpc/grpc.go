@@ -10,12 +10,13 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/Sannrox/tradepipe/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/Sannrox/tradepipe/grpc/login"
-	"github.com/Sannrox/tradepipe/grpc/portfolio"
-	"github.com/Sannrox/tradepipe/grpc/timeline"
+	pb "github.com/Sannrox/tradepipe/grpc/pb"
+
+	"github.com/Sannrox/tradepipe/grpc/pb/login"
+	"github.com/Sannrox/tradepipe/grpc/pb/portfolio"
+	"github.com/Sannrox/tradepipe/grpc/pb/timeline"
 	"github.com/Sannrox/tradepipe/tr"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -99,6 +100,7 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 
 func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.TwoFAReturn, error) {
 	client := s.client[in.ProcessId]
+	logrus.Debugf("%+v", client)
 	err := client.VerifyLogin(int(in.VerifyCode))
 	if err != nil {
 		return nil, err

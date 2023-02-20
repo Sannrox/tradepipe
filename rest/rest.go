@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sannrox/tradepipe/rest"
+	"github.com/Sannrox/tradepipe/rest/api"
 	"github.com/Sannrox/tradepipe/tr"
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
@@ -52,10 +52,10 @@ func (s *RestServer) SetOverWriteTls(overWriteTls bool) {
 }
 
 func (s *RestServer) Alive(ctx echo.Context) error {
-	res := rest.AliveResponse{}
+	res := api.AliveResponse{}
 	time := time.Now().Unix()
 	status := "OK"
-	alive := rest.Alive{
+	alive := api.Alive{
 		ServerTime: &time,
 		Status:     &status,
 	}
@@ -84,7 +84,7 @@ func (s *RestServer) Login(ctx echo.Context) error {
 		})
 	}
 
-	var login rest.Login
+	var login api.Login
 	if err := ctx.Bind(&login); err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (s *RestServer) Verify(ctx echo.Context, processId string) error {
 	client := s.client[processId]
 	s.Lock.Unlock()
 
-	var newVerify rest.Verify
+	var newVerify api.Verify
 	if err := ctx.Bind(&newVerify); err != nil {
 		return err
 	}
@@ -122,11 +122,11 @@ func (s *RestServer) Verify(ctx echo.Context, processId string) error {
 		return err
 	}
 
-	return ctx.JSON(200, rest.Verified{})
+	return ctx.JSON(200, api.Verified{})
 
 }
 
-func (s *RestServer) Timeline(ctx echo.Context, processId string, params rest.TimelineParams) error {
+func (s *RestServer) Timeline(ctx echo.Context, processId string, params api.TimelineParams) error {
 	s.Lock.Lock()
 	client := s.client[processId]
 	s.Lock.Unlock()
@@ -149,7 +149,7 @@ func (s *RestServer) Timeline(ctx echo.Context, processId string, params rest.Ti
 	}
 
 	timeline := tl.GetTimeLineEvents()
-	resptimeline := rest.Timeline{}
+	resptimeline := api.Timeline{}
 
 	b, err := json.Marshal(timeline)
 	if err != nil {
@@ -163,7 +163,7 @@ func (s *RestServer) Timeline(ctx echo.Context, processId string, params rest.Ti
 	return ctx.JSON(200, resptimeline)
 }
 
-func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params rest.TimelineDetailsParams) error {
+func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params api.TimelineDetailsParams) error {
 	s.Lock.Lock()
 	client := s.client[processId]
 	s.Lock.Unlock()
@@ -195,7 +195,7 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	timelineDetails := tl.GetTimeLineDetails()
 
-	response := rest.TimelineDetails{}
+	response := api.TimelineDetails{}
 
 	b, err := json.Marshal(timelineDetails)
 	if err != nil {
@@ -235,7 +235,7 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 		return ctx.JSON(500, err)
 	}
 
-	response := rest.Positions{}
+	response := api.Positions{}
 	err = json.Unmarshal(positions, &response.Positions)
 	if err != nil {
 		return ctx.JSON(500, err)
@@ -245,7 +245,7 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 }
 
 func (s *RestServer) Run(done chan struct{}, port string) error {
-	swagger, err := rest.GetSwagger()
+	swagger, err := api.GetSwagger()
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func (s *RestServer) Run(done chan struct{}, port string) error {
 
 	e.Use(middleware.OapiRequestValidator(swagger))
 
-	rest.RegisterHandlers(e, s)
+	api.RegisterHandlers(e, s)
 
 	var errChan chan error
 	go func(err chan error) {
@@ -270,7 +270,7 @@ func (s *RestServer) Run(done chan struct{}, port string) error {
 	}
 	<-done
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
 		logrus.Error(err)

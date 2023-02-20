@@ -4,13 +4,13 @@
 // - protoc             v3.21.8
 // source: api/proto/tradepipe.proto
 
-package grpc
+package pb
 
 import (
 	context "context"
-	login "github.com/Sannrox/tradepipe/grpc/login"
-	portfolio "github.com/Sannrox/tradepipe/grpc/portfolio"
-	timeline "github.com/Sannrox/tradepipe/grpc/timeline"
+	login "github.com/Sannrox/tradepipe/grpc/pb/login"
+	portfolio "github.com/Sannrox/tradepipe/grpc/pb/portfolio"
+	timeline "github.com/Sannrox/tradepipe/grpc/pb/timeline"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -44,7 +44,7 @@ func NewTradePipeClient(cc grpc.ClientConnInterface) TradePipeClient {
 
 func (c *tradePipeClient) Alive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Alive, error) {
 	out := new(Alive)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Alive", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Alive", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (c *tradePipeClient) Alive(ctx context.Context, in *emptypb.Empty, opts ...
 
 func (c *tradePipeClient) Login(ctx context.Context, in *login.Credentials, opts ...grpc.CallOption) (*login.ProcessId, error) {
 	out := new(login.ProcessId)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Login", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (c *tradePipeClient) Login(ctx context.Context, in *login.Credentials, opts
 
 func (c *tradePipeClient) Verify(ctx context.Context, in *login.TwoFAAsks, opts ...grpc.CallOption) (*login.TwoFAReturn, error) {
 	out := new(login.TwoFAReturn)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Verify", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Verify", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *tradePipeClient) Verify(ctx context.Context, in *login.TwoFAAsks, opts 
 
 func (c *tradePipeClient) Timeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error) {
 	out := new(timeline.ResponseTimeline)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Timeline", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Timeline", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *tradePipeClient) Timeline(ctx context.Context, in *timeline.RequestTime
 
 func (c *tradePipeClient) TimelineDetails(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error) {
 	out := new(timeline.ResponseTimeline)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/TimelineDetails", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/TimelineDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *tradePipeClient) TimelineDetails(ctx context.Context, in *timeline.Requ
 
 func (c *tradePipeClient) Positions(ctx context.Context, in *portfolio.RequestPositions, opts ...grpc.CallOption) (*portfolio.ResponsePositions, error) {
 	out := new(portfolio.ResponsePositions)
-	err := c.cc.Invoke(ctx, "/grpc.TradePipe/Positions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Positions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func _TradePipe_Alive_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/Alive",
+		FullMethod: "/pb.TradePipe/Alive",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).Alive(ctx, req.(*emptypb.Empty))
@@ -172,7 +172,7 @@ func _TradePipe_Login_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/Login",
+		FullMethod: "/pb.TradePipe/Login",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).Login(ctx, req.(*login.Credentials))
@@ -190,7 +190,7 @@ func _TradePipe_Verify_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/Verify",
+		FullMethod: "/pb.TradePipe/Verify",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).Verify(ctx, req.(*login.TwoFAAsks))
@@ -208,7 +208,7 @@ func _TradePipe_Timeline_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/Timeline",
+		FullMethod: "/pb.TradePipe/Timeline",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).Timeline(ctx, req.(*timeline.RequestTimeline))
@@ -226,7 +226,7 @@ func _TradePipe_TimelineDetails_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/TimelineDetails",
+		FullMethod: "/pb.TradePipe/TimelineDetails",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).TimelineDetails(ctx, req.(*timeline.RequestTimeline))
@@ -244,7 +244,7 @@ func _TradePipe_Positions_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.TradePipe/Positions",
+		FullMethod: "/pb.TradePipe/Positions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TradePipeServer).Positions(ctx, req.(*portfolio.RequestPositions))
@@ -256,7 +256,7 @@ func _TradePipe_Positions_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TradePipe_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc.TradePipe",
+	ServiceName: "pb.TradePipe",
 	HandlerType: (*TradePipeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

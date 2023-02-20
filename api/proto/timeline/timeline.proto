@@ -2,7 +2,7 @@ syntax = "proto3";
 
 
 package timeline; 
-option go_package = "github.com/Sannrox/tradepipe/grpc/timeline";
+option go_package = "github.com/Sannrox/tradepipe/grpc/pb/timeline";
 
 
 message RequestTimeline {
