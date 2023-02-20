@@ -7,9 +7,9 @@ import "google/protobuf/empty.proto";
 
 
 
-package grpc;
+package pb;
 
-option go_package = "github.com/Sannrox/tradepipe/grpc";
+option go_package = "github.com/Sannrox/tradepipe/grpc/pb";
 
 message Alive {
     string status = 1;
@@ -17,7 +17,7 @@ message Alive {
 }
 
 service TradePipe {
-    rpc Alive(google.protobuf.Empty) returns (grpc.Alive){}
+    rpc Alive(google.protobuf.Empty) returns (pb.Alive){}
     rpc Login(login.Credentials) returns (login.ProcessId){}
     rpc Verify(login.TwoFAAsks) returns (login.TwoFAReturn){}
     rpc Timeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}

@@ -30,7 +30,7 @@ func TestGrpcServer(t *testing.T) {
 	FakeServer := fake.NewFakeServer("+49111111111", "1111", "1234567890", "1234")
 	FakeServer.GenerateData()
 
-	go FakeServer.Run(done, FakeTRServerPort, "../../test/ssl/cert.pem", "../../test/ssl/key.pem")
+	go FakeServer.Run(done, FakeTRServerPort, "../test/ssl/cert.pem", "../test/ssl/key.pem")
 	go s.Run(done)
 
 	time.Sleep(10 * time.Second)

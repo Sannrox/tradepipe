@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 
-set -eu
+set -eux
 
-NAME=$(basename $(pwd))
+CMD_TARGET=$@
+NAME=${NAME:-$(basename $@)}
 URL=$(cat go.mod | grep module | cut -d " " -f2)
 
 TARGET=${TARGET:-"build/bin"}
@@ -39,5 +40,5 @@ export LDFLAGS="\
 TARGET="$TARGET/$NAME-$GOOS-$GOARCH-$VERSION"
 export TARGET
 
-export SOURCE="${URL}/cmd/"
+export SOURCE="${URL}/${CMD_TARGET}"
 
