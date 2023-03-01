@@ -25,5 +25,5 @@ func Disable() {
 
 // IsEnabled checks whether the debug flag is set or not.
 func IsEnabled() bool {
-	return os.Getenv("DEBUG") != ""
+	return len(os.Getenv("DEBUG")) != 0
 }

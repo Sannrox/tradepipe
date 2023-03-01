@@ -35,8 +35,10 @@ func NewTadeGrpcCmd() *cobra.Command {
 			if opts.Debug {
 				logger.Enable()
 			}
-			if err := logger.SetLogFile(opts.LogFile); err != nil {
-				return err
+			if len(opts.LogFile) != 0 {
+				if err := logger.SetLogFile(opts.LogFile); err != nil {
+					return err
+				}
 			}
 			server := grpc.NewGRPCServer()
 			return server.Run(opts.Done)

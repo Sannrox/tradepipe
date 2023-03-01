@@ -23,7 +23,7 @@ func TestEnable(t *testing.T) {
 
 func TestDisable(t *testing.T) {
 	Disable()
-	if os.Getenv("DEBUG") != "" {
+	if len(os.Getenv("DEBUG")) != 0 {
 		t.Fatalf("expected DEBUG=\"\", got %s\n", os.Getenv("DEBUG"))
 	}
 	if logrus.GetLevel() != logrus.InfoLevel {
