@@ -18,7 +18,7 @@ import (
 )
 
 type Downloader struct {
-	TR             APIClient
+	TR             *APIClient
 	OutputPath     string
 	HistoryFile    string
 	FilenameFmt    string
@@ -28,7 +28,7 @@ type Downloader struct {
 	TimeLine       *TimeLine
 }
 
-func NewDownloader(client APIClient) *Downloader {
+func NewDownloader(client *APIClient) *Downloader {
 	return &Downloader{TR: client, FilenameFmt: "%s_%s_%s_%s_%s.pdf"}
 }
 
@@ -154,7 +154,7 @@ func (d *Downloader) DownloadAll(ctx context.Context, data chan Message) error {
 		return err
 	}
 
-	d.TimeLine = NewTimeLine(&d.TR)
+	d.TimeLine = NewTimeLine(d.TR)
 
 	if err := d.TimeLine.LoadTimeLine(ctx, data); err != nil {
 		logrus.Error("Error loading timeline: ", err)

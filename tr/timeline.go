@@ -76,6 +76,8 @@ func (t *TimeLine) LoadTimeLine(ctx context.Context, data chan Message) error {
 	}
 	for {
 		select {
+		case <-ctx.Done():
+			return nil
 		case msg := <-data:
 			if msg.Subscription["type"] == "timeline" {
 				end, err := t.LoadNextTimeline(msg.Payload, t.SinceTimestamp)
@@ -145,6 +147,8 @@ func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) e
 	}
 	for {
 		select {
+		case <-ctx.Done():
+			return nil
 		case msg := <-data:
 			if msg.Subscription["type"] == "timelineDetail" {
 				t.ReceivedDetail++
@@ -166,8 +170,6 @@ func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) e
 			} else {
 				continue
 			}
-		case <-ctx.Done():
-			return ctx.Err()
 		}
 	}
 }

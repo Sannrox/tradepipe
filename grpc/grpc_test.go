@@ -45,6 +45,8 @@ func TestGrpcServer(t *testing.T) {
 
 	t.Run("Portfolio test", Portfolio)
 
+	t.Run("Savingsplan test", SavingsPlans)
+
 	close(done)
 
 }
@@ -151,6 +153,27 @@ func Portfolio(t *testing.T) {
 	defer c.Close()
 
 	resp, err := c.Positions("1234567890")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(resp.Error) != 0 {
+		t.Fatal(resp.Error)
+	}
+
+}
+
+func SavingsPlans(t *testing.T) {
+	c := test.NewFakeClient()
+	c.SetCredentials("+49111111111", "1111")
+	err := c.Connect()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer c.Close()
+
+	resp, err := c.SavingsPlans("1234567890")
 	if err != nil {
 		t.Fatal(err)
 	}

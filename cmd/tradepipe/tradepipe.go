@@ -104,11 +104,14 @@ func ExecuteCLI(args []string, outpath string, historyfile string) error {
 
 	time.Sleep(20 * time.Second)
 
-	dl := tr.NewDownloader(*client)
+	dl := tr.NewDownloader(client)
 
 	dl.SetHistoryFile(historyfile)
 	dl.SetOutputPath(outpath)
-	dl.DownloadAll(ctx, data)
+	err = dl.DownloadAll(ctx, data)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

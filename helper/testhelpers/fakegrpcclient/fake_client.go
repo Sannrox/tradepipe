@@ -6,6 +6,7 @@ import (
 	"github.com/Sannrox/tradepipe/grpc/pb"
 	"github.com/Sannrox/tradepipe/grpc/pb/login"
 	"github.com/Sannrox/tradepipe/grpc/pb/portfolio"
+	"github.com/Sannrox/tradepipe/grpc/pb/savingsplan"
 	"github.com/Sannrox/tradepipe/grpc/pb/timeline"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -76,4 +77,9 @@ func (c *FakeClient) TimelineDetails(processId string, sinceTimestamp float64) (
 func (c *FakeClient) Positions(processId string) (*portfolio.ResponsePositions, error) {
 	client := pb.NewTradePipeClient(c.conn)
 	return client.Positions(context.Background(), &portfolio.RequestPositions{ProcessId: processId})
+}
+
+func (c *FakeClient) SavingsPlans(proccessId string) (*savingsplan.ResponseSavingsplan, error) {
+	client := pb.NewTradePipeClient(c.conn)
+	return client.SavingsPlans(context.Background(), &savingsplan.RequestSavingsplan{ProcessId: proccessId})
 }

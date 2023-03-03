@@ -40,3 +40,14 @@ func GenerateRandomeISIN() string {
 
 	return string(b)
 }
+
+func GenerateRandomAmount() float64 {
+	rand.Seed(time.Now().UnixNano())
+	return rand.Float64()*999 + 1
+}
+
+func GenerateRandomInterval() string {
+	rand.Seed(time.Now().UnixNano())
+	interval := []string{"weekly", "monthly", "quarterly", "yearly"}
+	return interval[rand.Intn(len(interval))]
+}

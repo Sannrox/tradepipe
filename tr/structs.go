@@ -67,3 +67,49 @@ type Position struct {
 	RealisedProfit        int     `json:"realisedProfit"`
 	UnrealisedAverageCost float64 `json:"unrealisedAverageCost"`
 }
+
+type SavingsPlan struct {
+	ID           string  `json:"id"`
+	CreatedAt    int64   `json:"createdAt"`
+	InstrumentID string  `json:"instrumentId"`
+	Amount       float64 `json:"amount"`
+	Interval     string  `json:"interval"`
+	StartDate    struct {
+		Type              string `json:"type"`
+		Value             int    `json:"value"`
+		NextExecutionDate string `json:"nextExecutionDate"`
+	} `json:"startDate"`
+	FirstExecutionDate           interface{} `json:"firstExecutionDate"`
+	NextExecutionDate            string      `json:"nextExecutionDate"`
+	PreviousExecutionDate        string      `json:"previousExecutionDate"`
+	VirtualPreviousExecutionDate string      `json:"virtualPreviousExecutionDate"`
+	FinalExecutionDate           interface{} `json:"finalExecutionDate"`
+	PaymentMethodID              interface{} `json:"paymentMethodId"`
+	PaymentMethodCode            interface{} `json:"paymentMethodCode"`
+	LastPaymentExecutionDate     interface{} `json:"lastPaymentExecutionDate"`
+	Paused                       bool        `json:"paused"`
+}
+
+type RawSavingsPlans struct {
+	SavingsPlans []struct {
+		ID           string  `json:"id"`
+		CreatedAt    int64   `json:"createdAt"`
+		InstrumentID string  `json:"instrumentId"`
+		Amount       float64 `json:"amount"`
+		Interval     string  `json:"interval"`
+		StartDate    struct {
+			Type              string `json:"type"`
+			Value             int    `json:"value"`
+			NextExecutionDate string `json:"nextExecutionDate"`
+		} `json:"startDate"`
+		FirstExecutionDate           interface{} `json:"firstExecutionDate"`
+		NextExecutionDate            string      `json:"nextExecutionDate"`
+		PreviousExecutionDate        string      `json:"previousExecutionDate"`
+		VirtualPreviousExecutionDate string      `json:"virtualPreviousExecutionDate"`
+		FinalExecutionDate           interface{} `json:"finalExecutionDate"`
+		PaymentMethodID              interface{} `json:"paymentMethodId"`
+		PaymentMethodCode            interface{} `json:"paymentMethodCode"`
+		LastPaymentExecutionDate     interface{} `json:"lastPaymentExecutionDate"`
+		Paused                       bool        `json:"paused"`
+	} `json:"savingsPlans"`
+}

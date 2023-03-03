@@ -3,6 +3,7 @@ syntax = "proto3";
 import "api/proto/login/login.proto";
 import "api/proto/timeline/timeline.proto";
 import "api/proto/portfolio/portfolio.proto";
+import "api/proto/savingsplan/savingsplan.proto";
 import "google/protobuf/empty.proto";
 
 
@@ -23,5 +24,6 @@ service TradePipe {
     rpc Timeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
     rpc TimelineDetails(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
     rpc Positions(portfolio.RequestPositions) returns (portfolio.ResponsePositions){}
+    rpc SavingsPlans(savingsplan.RequestSavingsplan) returns (savingsplan.ResponseSavingsplan){}
 }
 
