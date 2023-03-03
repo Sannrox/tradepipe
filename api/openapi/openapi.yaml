@@ -4,7 +4,7 @@ info:
   title: tradepipe-api
   description: This Api is used to manage the tradepipe application
 servers:
-  - url: http://localhost:3000/v1/
+  - url: http://localhost:8080
 paths:
   /alive:
     get:
@@ -25,11 +25,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Alive'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Alive'
+          $ref: "#/components/responses/InternalServerError"
   /login:
     post:
       summary: Login
@@ -56,11 +52,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProcessId'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProcessId'
+          $ref: "#/components/responses/InternalServerError"
   /{processId}/verify:
     post:
       summary: Verify
@@ -93,11 +85,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Verified'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Verified'
+          $ref: "#/components/responses/InternalServerError"
   /{processId}/timeline:
    get:
       summary:  timeline 
@@ -128,11 +116,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Timeline'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Timeline'
+          $ref: "#/components/responses/InternalServerError"
   /{processId}/timelinedetails:
    get:
       summary:  timelinedetails
@@ -163,11 +147,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TimelineDetails'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimelineDetails'
+          $ref: "#/components/responses/InternalServerError"
   /{processId}/positions:
    get:
       summary:  positions
@@ -193,11 +173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Positions'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Positions'
+          $ref: "#/components/responses/InternalServerError"
 components:
   schemas:
     Login:
@@ -259,3 +235,21 @@ components:
         serverTime: 
           type: integer
           format: int64
+    ErrorModel:
+      type: object 
+      required:
+        - message
+      properties:
+        message:
+          type: string 
+
+  responses:
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema: 
+           $ref: "#/components/schemas/ErrorModel"
+  
+
+

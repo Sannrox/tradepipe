@@ -27,6 +27,11 @@ type Alive struct {
 	Status     *string `json:"status,omitempty"`
 }
 
+// ErrorModel defines model for ErrorModel.
+type ErrorModel struct {
+	Message string `json:"message"`
+}
+
 // Login defines model for Login.
 type Login struct {
 	Number string `json:"number"`
@@ -63,6 +68,9 @@ type Verified struct {
 type Verify struct {
 	Token string `json:"token"`
 }
+
+// InternalServerError defines model for InternalServerError.
+type InternalServerError = ErrorModel
 
 // TimelineParams defines parameters for Timeline.
 type TimelineParams struct {
@@ -599,7 +607,7 @@ type AliveResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Alive
 	JSON401      *Alive
-	JSON500      *Alive
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -623,7 +631,7 @@ type LoginResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ProcessId
 	JSON401      *ProcessId
-	JSON500      *ProcessId
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -647,7 +655,7 @@ type PositionsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Positions
 	JSON401      *Positions
-	JSON500      *Positions
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -671,7 +679,7 @@ type TimelineResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Timeline
 	JSON401      *Timeline
-	JSON500      *Timeline
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -695,7 +703,7 @@ type TimelineDetailsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *TimelineDetails
 	JSON401      *TimelineDetails
-	JSON500      *TimelineDetails
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -719,7 +727,7 @@ type VerifyResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Verified
 	JSON401      *Verified
-	JSON500      *Verified
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -837,7 +845,7 @@ func ParseAliveResponse(rsp *http.Response) (*AliveResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Alive
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -877,7 +885,7 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ProcessId
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -917,7 +925,7 @@ func ParsePositionsResponse(rsp *http.Response) (*PositionsResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Positions
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -957,7 +965,7 @@ func ParseTimelineResponse(rsp *http.Response) (*TimelineResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Timeline
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -997,7 +1005,7 @@ func ParseTimelineDetailsResponse(rsp *http.Response) (*TimelineDetailsResponse,
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest TimelineDetails
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1037,7 +1045,7 @@ func ParseVerifyResponse(rsp *http.Response) (*VerifyResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Verified
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1215,21 +1223,21 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+yXz27jNhDGX0WY9qiulO62B9222MsCOQRo0EuQAy2NbKYUyQwpA4ahdy9I6p8t2ZAL",
-	"K+1hT1HM4XwfOT+NyCPkqtJKorQGsiOYfIcV849fBd+je9CkNJLlGCKQ9kjPvPJjpaKKWciAS/v7F4jB",
-	"HjSGf3GLBE0MxjJb+6ntmLHE5Raapo9WmzfMrQt+VFsup6KyrjZIMzli0CF+mpvwveaEBWQv3fwQ/Tqj",
-	"+6QMt1xJM9Wu0Bi2xXnx8bR2lBGxw8TBEDkrTypHY74XsypuswWXeJs3O5p11VofOOes0/6GlnFh/p2F",
-	"0eRFTrr4OUN/IfGSY3GLk+ZSnsM0i1V/4wKiQtjUoIvjslQuQ4EmJ65d2SGD5x030VfNI26i2mARWRVV",
-	"TLItRnaHkSVWoOYaI6a14Dnz09weWuEE+vFfmOYQwx7JhMQPn9JPqVuS0ijdYAaf/U8xaGZ3flUJ697m",
-	"Ldqptz/9Oxqp0lsJrzj4hOR9ODDbhuC2wWglTdiuX9PU/cmVtCh95pH95M0oObQV9/QzYQkZ/JQMfSdp",
-	"m04SBPwWntnzhiK2Z1ywjUC32C/pw4cJl4o2vChQOuHfPmLF36VFkky0tYiQSJGH0NRVxejQF83/mIi+",
-	"byozU1/fVh1wrrynfJ3WOPTfgDoa+4cqDndbbMg9s9jgLicsUFrOhIHxu2apxmZF6obee9GaqXMXUtbi",
-	"3uQtEC8ZF1jcm7yrwkvo66oZQ3LUXbImOfkizvaaR8UKEx1UTdEQfM7h02hEM2IVWiQD2csRHOe+sUEM",
-	"krljCPT6E3Di0XacN/TXNaHq/c9sbz+4JljLDKwE1zXxJXDpUYIzwMbHmit8uUbnnAm0GPVzzjF7HgbW",
-	"oixuc73XSIchmeEyd7LDxP4oXajafeP6o0V7eF0X2H4nZirWja2I6yL5dWC9Jr2EVTvMv4BqMRx/byU2",
-	"6uZeIvdbP/4D4JMN+W85XuJiXZyvOLiF6qJPcwb3frg/zR45w/3KU12bmdtEe/9a+fN+/1Ns6/t/d4zt",
-	"78UzztparIf9AvF1aL8mvATzcTVDWKCwJgEZ7KzVWZIIlTOxU8Zmn9M0TfYPCTSvzT8BAAD//9tFmHo7",
-	"EwAA",
+	"H4sIAAAAAAAC/+xXTW/jNhD9KwLboxopTdqDbinSQ4AUCJCglyAHWhzZTCmSGVIGDMP/vSApU7LNBHYh",
+	"dfewN4nz8R45T8PRltSq1UqCtIZUW4JgtJIG/MuDtICSimfANeCfiArdcq2kBWndI9Va8JparmTxbpR0",
+	"a6ZeQUvd088IDanIT8WAUQSrKXy2vxQDQXa7XU4YmBq5dplIFZGzAJ0FbOfXx7v0d4KvwT1oVBrQ8sDa",
+	"+JAX3npbo7ClllSES/v7LcmJ3WgIr7AEJC6lpbbzob3NWORy6eH6FbV4h9o65xHvE+QWjKFLSGdC+Og4",
+	"AiPVa3R8SwA8qiWXp7ll1y4AE6lzooP/15B9fPBO4T4pw93pm0v2lRM9DuutFJFuThgMnkl4VDUY88CS",
+	"KK6agku4jJsdRX1JLTqmmO2x78FSLsx/ozAKPovJ3j9F6G9A3nBgFwownWdzmsWqf+AMRQW3U4LOj8tG",
+	"uQyHX/XLipvsTvOMm6wzwDKrspZKuoTMriCzSBloriEbtRX3xXIrHEC0/0I1JzlZA5qQ+PqqvCrdlpQG",
+	"6YwVufFLOdHUrvyuCrpvF0uwp9yefRPIVOOphB5CfEL0PJww+46TH3bJX8tysq4YABINse+DdE25oAsB",
+	"brO35fX/BtwoXHDGQDrg38KOU/niyRSpy8M38K5tKW7ikfvFQsSup0yiOr4pOrm44hyq47BCoXsGoYKx",
+	"fyi2meyMQu7EGQV2NQIDaTkVhoy/FIsd7GbUzNA5P6Vmutq5NJ2YWjdngDeUC2AT6mZfh5wUW73H3xUH",
+	"N1HyG39UlJlsozrMBudjBT2NLJoibcECGlK9bolTqG8oJCeSuvmCRPyTkuejEzxupG9zyiHyT1QkGueU",
+	"xHkEJpeFHuEeSWM8CHyhDNdcHLgAC1mMORbIy2CYSx95n+ujA9wMyQyXtYMdAuN0y1TnboV4Gffj3rxS",
+	"iyeRKPTeNqPQzoKfXGZ2QP1EZWyY9S4VW7aP/Ux099H+Q3sHB/JtJXgOi9mUyCL4kSDXw4CfnKrCD4BX",
+	"YmcS427/gzDzPTj9oNbz/u4mtfjjlmDW12I+qZ4BPrlCx4UIv1RBQB0KUpGVtboqCqFqKlbK2OqmLMti",
+	"fV2Q3dvu3wAAAP//tIiq5JkSAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

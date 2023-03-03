@@ -29,6 +29,7 @@ type FakeServer struct {
 	TimelineDetails *FakeTimelineDetails
 	Subscriptios    *FakeSubscriptionStore
 	Portfolio       *FakePortfolio
+	SavingsPlans    *FakeSavingsplans
 	verifyCode      string
 	number          string
 	pin             string
@@ -43,6 +44,7 @@ func NewFakeServer(number, pin, processId, verifyCode string) *FakeServer {
 		TimelineDetails: NewFakeTimelineDetails(),
 		Subscriptios:    NewFakeSubscriptionStore(),
 		Portfolio:       NewFakePortfolio(),
+		SavingsPlans:    NewFakeSavingsplans(),
 		number:          number,
 		pin:             pin,
 		ProcessId:       processId,
@@ -75,6 +77,7 @@ func (s *FakeServer) GenerateData() {
 		}
 	}
 	s.Portfolio.GenerateFakePortfolio()
+	s.SavingsPlans.GenerateFakeSavingsPlans(1)
 	logrus.Info("Fake Data generated")
 	logrus.Debug(s.Timeline)
 }
@@ -359,6 +362,20 @@ func (s *FakeServer) WebSocket(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(portfolioJSON))
+
+				case "savingsPlans":
+					logrus.Info("Savings Plans Subscription")
+					savingsPlans := s.SavingsPlans.GetSavingsPlans()
+					savingsPlansJSON, err := json.Marshal(savingsPlans)
+					if err != nil {
+						err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d %s %s", subscriptionId, E.String(), err)))
+						if err != nil {
+							logrus.Error(err)
+							return
+						}
+						continue
+					}
+					returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(savingsPlansJSON))
 
 				default:
 					returner = fmt.Sprintf("%d %s %s", subscriptionId, E.String(), "Unknown subscription type")
