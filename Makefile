@@ -5,7 +5,7 @@
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-.PHONY: test lint deps format build coverage coverhtml grpc rest 
+.PHONY: test lint deps format build coverage coverhtml grpc rest
 
 
 GO ?= $(shell which go)
@@ -81,16 +81,9 @@ endif
 deps: ## Get the dependencies
 	@echo ">> getting dependencies for core"
 	$(GO) get $(GOOPTS) -t ./...
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	go install mvdan.cc/gofumpt@latest
 	go install github.com/daixiang0/gci@latest
-	@if ! type "protoc" > /dev/null; then \
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip; \
-        unzip protoc-3.7.1-linux-x86_64.zip -d protoc3; \
-        sudo mv protoc3/bin/* /usr/local/bin/; \
-        sudo mv protoc3/include/* /usr/local/include/; \
-	fi
+
 fmt: ## Formates the code
 	@echo ">> formatting code"
 	gofumpt -l -w .
@@ -113,9 +106,12 @@ $(CMD_TARGET): ## $(CMD_TARGET)
 else
 $(CMD_TARGET): ## $(CMD_TARGET)
 	@echo ">> building $@"
-	scripts/build/binary cmd/$@
+	./scripts/build/binary cmd/$@
 endif
 
+
+build-image:
+	./build/make-build-image
 
 
 

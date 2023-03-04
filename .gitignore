@@ -1,6 +1,6 @@
 build/bin/*
 protoc3/
 protoc-*-linux-x86_64.zip
-tradepip.txt
+tradepipe.txt
 */**/cert.pem
 */**/key.pem

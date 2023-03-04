@@ -1,0 +1,6 @@
+ARG BASEIMAGE
+ARG BINARY
+
+
+FROM "${BASEIMAGE}"
+COPY ${BINARY} /usr/local/bin/${BINARY}
