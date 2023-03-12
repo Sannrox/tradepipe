@@ -13,69 +13,8 @@ GO ?= $(shell which go)
 ifneq ($(GO), )
 	GOFMT ?= $(GO)fmt
 	GOLIST ?= $(GO) list
-	GOPATH := $(firstword $(subst :, ,$(shell $(GO) env GOPATH)))
-	GOHOSTOS     ?= $(shell $(GO) env GOHOSTOS)
-	GOHOSTARCH   ?= $(shell $(GO) env GOHOSTARCH)
-	GOTESTSUM    ?= $(shell which gotestsum)
-	PKGS          = ./...
-
-
-# GO TEST
-GOTEST := $(GO) test
-endif
-GOTEST_DIR :=
-ifneq (${CI},)
-ifneq ($(GOTESTSUM),)
-	GOTEST_DIR := test-results
-	GOTEST := gotestsum --junitfile $(CURRENT_DIR)/$(GOTEST_DIR)/unit-tests.xml --
-endif
 endif
 
-
-ifeq ($(GOHOSTARCH),amd64)
-        ifeq ($(GOHOSTOS),$(filter $(GOHOSTOS),linux freebsd darwin windows))
-                # Only supported on amd64
-                test-flags := -race
-        endif
-endif
-
-
-ifneq ($(CI),)
-ifdef ($(GOTESTSUM),)
-$(GOTESTSUM):
-	$(GO) get gotest.tools/gotestsum
-endif
-endif
-
-
-
-$(GOTEST_DIR):
-	@mkdir -p $@
-
-test: $(GOTESTSUM) $(GOTEST_DIR) ## Run unit-tests
-	@echo ">> running test for core"
-	./scripts/test/pre-test-steps
-	CGO_ENABLED=1 $(GOTEST) $(test-flags) $(GOOPTS) $(PKGS)
-
-# GOLANG CI LINT
-GOLANGCI_LINT := $(shell which golangci-lint)
-GOLANGCI_LINT_OPTS ?=
-GOLANGCI_LINT_VERSION ?= v1.39.0
-
-
-ifeq ($(GOHOSTOS),$(filter $(GOHOSTOS),linux darwin))
-	ifeq ($(GOHOSTARCH),$(filter $(GOHOSTARCH),amd64 i386))
-		GOLANGCI_LINT := $(GOPATH)/bin/golangci-lint
-	endif
-endif
-
-ifdef GOLANGCI_LINT
-$(GOLANGCI_LINT):
-	mkdir -p $(GOPATH)/bin
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/$(GOLANGCI_LINT_VERSION)/install.sh \
-		| sed -e '/install -d/d' \
-		| sh -s -- -b $(GOPATH)/bin $(GOLANGCI_LINT_VERSION)
-endif
 
 
 deps: ## Get the dependencies
@@ -106,33 +45,22 @@ $(CMD_TARGET): ## $(CMD_TARGET)
 else
 $(CMD_TARGET): ## $(CMD_TARGET)
 	@echo ">> building $@"
-	./scripts/build/binary cmd/$@
+	./scripts/make-targets/build.sh cmd/$@
 endif
 
+test: ## Run unittests
+	@echo ">> running unit tests"
+	./scripts/make-targets/test.sh
 
-build-image:
-	./build/make-build-image
-
-
-
-coverage: ## Generate global code coverage report
-	./scripts/test/coverage;
-
-coverhtml: ## Generate global code coverage report in HTML
-	./scripts/test/coverage html;
-
-changelog: ## Generates changelog for last updates
-	./scripts/utils/log
-
-lint: ## run all the lint tools
-	$(GOLANGCI_LINT) run
-rest: ## Generate go code from openapi spec
-	./scripts/generate/rest
-grpc: ## Generate go code from protobuf files
-	./scripts/generate/grpc
-help: ## Display this help screen
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+validate: ## Validate the code
+	@echo ">> validating code"
+	scripts/make-targets/validate.sh
 
 clean:
-	rm -rf "./tmp" "./timelineEventsWithDocs.json" "./timelineEventsWithoutDocs.json" "./tradepip.txt"
+	@echo ">> clean up"
+	./scripts/make-targets/clean.sh
+
+
+help: ## Display this help screen
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 

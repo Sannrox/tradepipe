@@ -4,3 +4,4 @@ protoc-*-linux-x86_64.zip
 tradepipe.txt
 */**/cert.pem
 */**/key.pem
+_output

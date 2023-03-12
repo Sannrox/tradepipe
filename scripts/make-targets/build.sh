@@ -4,16 +4,11 @@
 #
 
 
-set -eu
+set -eux
 
 ROOT_PATH="$(dirname "$0")/../.."
 
-. "${ROOT_PATH}/scripts/lib/init"
+. "${ROOT_PATH}/scripts/lib/init.sh"
 
 golang_build "$@"
-
-
-
-
-
 

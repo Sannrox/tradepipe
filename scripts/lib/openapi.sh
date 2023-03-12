@@ -3,7 +3,6 @@
 set -eu 
 
 
-ROOT_PATH=$(cd "$(dirname "$0")"/.. && pwd -P)
 
 openapi_gen(){
     oapi-codegen --generate client,server,types,spec \

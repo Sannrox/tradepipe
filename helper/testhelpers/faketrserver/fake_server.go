@@ -2,10 +2,18 @@ package testing
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"math/big"
+	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +33,8 @@ type FakeServer struct {
 	number          string
 	pin             string
 	ProcessId       string
+	CertFile        string
+	KeyFile         string
 }
 
 func NewFakeServer(number, pin, processId, verifyCode string) *FakeServer {
@@ -37,6 +47,8 @@ func NewFakeServer(number, pin, processId, verifyCode string) *FakeServer {
 		pin:             pin,
 		ProcessId:       processId,
 		verifyCode:      verifyCode,
+		KeyFile:         "key.pem",
+		CertFile:        "cert.pem",
 	}
 }
 func OverWriteClient() *http.Client {
@@ -82,7 +94,7 @@ func (s *FakeServer) Run(done chan struct{}, port string, cert, key string) {
 	}
 
 	go func() {
-		err := server.ListenAndServeTLS(cert, key)
+		err := server.ListenAndServeTLS(s.CertFile, s.KeyFile)
 		if err != nil && err != http.ErrServerClosed {
 			logrus.Error(err)
 		}
@@ -98,6 +110,44 @@ func (s *FakeServer) Run(done chan struct{}, port string, cert, key string) {
 		logrus.Error(err)
 	}
 	logrus.Info("Fake Server stopped")
+}
+
+func (s *FakeServer) CreateCertAndKeyForFakeServer() {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create a self-signed certificate
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			CommonName: "example.com",
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(1, 0, 0),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
+	}
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		panic(err)
+	}
+
+	// Write the private key and certificate to files
+	keyOut := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	certOut := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+
+	// Save the files to disk
+	if err := os.WriteFile(s.CertFile, certOut, 0644); err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile(s.KeyFile, keyOut, 0600); err != nil {
+		panic(err)
+	}
 }
 
 func (s *FakeServer) Login(w http.ResponseWriter, r *http.Request) {

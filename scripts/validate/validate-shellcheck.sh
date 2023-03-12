@@ -1,14 +1,12 @@
 #!/usr/bin/env sh
 
-set -eux
+# shellcheck disable=SC2046
 
-ROOT_PATH=$(cd "$(dirname "$0")"/.. && pwd -P)
-
-. "${ROOT_PATH}/scripts/lib/init.sh"
+set -eu
 
 
-SHELLCHECK_VERSION="0.8.0"
-SHELLCHECK_IMAGE="docker.io/koalaman/shellcheck-alpine:v0.8.0@sha256:f42fde76d2d14a645a848826e54a4d650150e151d9c81057c898da89a82c8a56"
+SHELLCHECK_VERSION="0.9.0"
+#SHELLCHECK_IMAGE="docker.io/koalaman/shellcheck-alpine:v0.8.0@sha256:f42fde76d2d14a645a848826e54a4d650150e151d9c81057c898da89a82c8a56"
 
 
 all_files() {
@@ -24,7 +22,7 @@ if type "shellcheck" > /dev/null; then
   fi
 fi
 
-if [ "${SHELLCHECK}" == 1 ]; then
+if [ "${SHELLCHECK}" = 1 ]; then
   echo "Using host shellcheck ${SHELLCHECK_VERSION} binary."
   shellcheck $(all_files)
 fi

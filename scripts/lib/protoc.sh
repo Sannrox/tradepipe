@@ -4,7 +4,6 @@ set -eu
 
 PREFIX="github.com/Sannrox/tradepipe"
 
-ROOT_PATH=$(cd "$(dirname "$0")"/.. && pwd -P)
 PROTOC_VERSION="3.7.1"
 
 

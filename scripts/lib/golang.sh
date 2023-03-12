@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# shellcheck disable=SC2034
+
 set -eu
 
 GOOS="$(go env GOOS)"
@@ -35,8 +37,8 @@ LDFLAGS="\
 
 
 golang_build() {
-    TARGET_PATH=$@
-    NAME=$(basename "$@")
+    TARGET_PATH="$1"
+    NAME=$(basename "$1")
     TARGET="${OUTPUT_BINPATH}/${NAME}-${GOOS}-${GOARCH}"
     SOURCE="${GO_MODULE_URL}/${TARGET_PATH}"
 
