@@ -8,6 +8,9 @@ MAKEFLAGS += --no-builtin-rules
 .PHONY: test lint deps format build coverage coverhtml grpc rest
 
 
+all:
+	./scripts/make-targets/build.sh $(TARGET)
+
 GO ?= $(shell which go)
 
 ifneq ($(GO), )

@@ -1,8 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # shellcheck disable=SC2034
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
+
+readonly GO_PACKAGE=github.com/Sannrox/tradepipe
 
 GOOS="$(go env GOOS)"
 
@@ -34,6 +39,20 @@ LDFLAGS="\
     -X \"main.BuildOs=${GOOS}\" \
     ${LDFLAGS:-} \
 "
+
+
+function golang::server_targets(){
+    local targets=(
+        cmd/tradegrpc
+        cmd/tradehttp
+        )
+
+    echo "${targets[@]}"
+}
+
+IFS=" " read -r -a SERVER_TARGETS <<< "$(golang::server_targets)"
+readonly SERVER_TARGETS
+readonly SERVER_BINARIES=("${SERVER_TARGETS[@]##*/}")
 
 
 golang_build() {

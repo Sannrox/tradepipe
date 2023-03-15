@@ -1,12 +1,15 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
 
 
 ROOT_PATH=$(dirname "$0")/..
 
-. "${ROOT_PATH}/scripts/lib/openapi.sh"
-.  "${ROOT_PATH}/scripts/lib/protoc.sh"
+source "${ROOT_PATH}/scripts/lib/openapi.sh"
+source  "${ROOT_PATH}/scripts/lib/protoc.sh"
 
 
 codegen(){

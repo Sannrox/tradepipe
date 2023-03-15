@@ -1,10 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # Build a static binary for the host OS/ARCH
 #
 
 
-set -eux
+set -eu
 
 ROOT_PATH="$(dirname "$0")/../.."
 

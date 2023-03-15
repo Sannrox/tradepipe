@@ -1,8 +1,11 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # shellcheck disable=SC2046
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
 
 
 SHELLCHECK_VERSION="0.9.0"

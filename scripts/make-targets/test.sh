@@ -22,7 +22,7 @@ try_ci_test_run(){
                 install_gotestsum
             fi
             GOTEST_DIR := test-results
-            GOTEST := gotestsum --junitfile $(CURRENT_DIR)/$(GOTEST_DIR)/unit-tests.xml --
+            GOTEST := gotestsum --junitfile "${GO_TEST_DIR}/unit-tests.xml" --
         fi
     else
         GO_TEST="go test"
@@ -41,7 +41,7 @@ install_gotestsum() {
 
 check_test_flags(){
     if [ -n "${GOHOSTARCH}" ]; then
-        if [ "${GOHOSTARCH}" = "amd64"]; then 
+        if [ "${GOHOSTARCH}" = "amd64" ]; then 
             case "${GOHOSTOS}" in 
                 linux)
                 GO_TEST_FLAGS="-race"

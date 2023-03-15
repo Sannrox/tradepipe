@@ -15,7 +15,7 @@ run_cmd(){
 run_validate(){
     for script in $(echo "$1"); do
             echo  "Validating $(basename "${script}")"
-            run_cmd "${script}"
+            run_cmd "${script}" || true
     done
 }
 

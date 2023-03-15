@@ -1,6 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
 
 
 clean_with_patter(){
