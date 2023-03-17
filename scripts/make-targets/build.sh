@@ -10,5 +10,5 @@ ROOT_PATH="$(dirname "$0")/../.."
 
 . "${ROOT_PATH}/scripts/lib/init.sh"
 
-golang_build "$@"
+golang::build_binaries "$@"
 

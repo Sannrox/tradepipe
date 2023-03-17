@@ -52,7 +52,7 @@ BUILD_CONTAINER_NAME="${BUILD_CONTAINER_BASE_NAME}-${GIT_COMMIT_HASH}"
 DATA_CONTAINER_BASE_NAME="build-data"
 DATA_CONTAINER_NAME="${DATA_CONTAINER_BASE_NAME}-${GIT_COMMIT_HASH}"
 
-DOCKER_MOUNT_AGRS=(--volumes-from "${DATA_CONTAINER_NAME}")
+DOCKER_MOUNT_AGRS=(--volumes-from "${DATA_CONTAINER_NAME}" --volume "${ROOT_PATH}:${REMOTE_ROOT}")
 LOCAL_OUTPUT_BUILD_CONTEXT="${LOCAL_OUTPUT_SUBPATH}/${BUILD_IMAGE}"
 
 
@@ -293,67 +293,5 @@ function build::get_docker_wrapped_binaries() {
 
 
 
-function build::create_server_images(){
-    binary_dir="$1"
-    arch="$2"
-    images_dir="$3"
-    binaries="$(docker_get_docker_wrapped_binaries)"
 
-    mkdir -p "${images_dir}"
-
-    docker_registry="${DOCKER_REGISTRY:-}"
-
-     docker_tag="${GIT_VERSION}"
-     if [ -z "${docker_tag}" ]; then
-        echo "GIT_VERSION is not set; cannot create docker images"
-        return 1
-     fi
-
-     docker_build_opts=
-     if [ "${BUILD_PULL_LATEST_IMAGES}" -eq 1 ]; then
-        docker_build_opts="${docker_build_opts} --pull"
-     fi
-
-     for wrapped in $binaries; do 
-        binary_name="${wrapped%%,*}"
-        base_image="${wrapped##*,}"
-        binary_path="${binary_dir}/${binary_name}"
-        docker_build_path="${binary_dir}.dockerbuild"
-        docker_image_tag="${docker_registry}${binary_name}:${docker_tag}-${arch}"
-        docker_file_path="${ROOT_PATH}/build/image/Dockerfile"
-
-        if [ -f "${ROOT_PATH}/build/image/${binary_name}/Dockerfile" ]; then
-            docker_file_path="${ROOT_PATH}/build/image/${binary_name}/Dockerfile"
-        fi
-
-        echo "Building docker image ${docker_image_tag} from ${docker_file_path} with context ${docker_build_path}"
-        (
-        rm -rf "${docker_build_path}"
-        mkdir -p "${docker_build_path}"
-
-        ln  "${binary_path}" "${docker_build_path}/${binary_name}"
-
-        build_log="${docker_build_path}/build.log"
-
-        if ! docker build "${docker_build_opts}" \
-            -t "${docker_image_tag}" \
-            -f "${docker_file_path}" \
-            --build-arg BINARY_NAME="${binary_name}" \
-            --build-arg BASE_IMAGE="${base_image}" \
-            "${docker_build_path}" > "${build_log}" 2>&1; then
-            cat "${build_log}"
-            exit 1
-        fi
-        rm "${build_log}"
-
-        echo "Created docker image ${docker_image_tag}"
-
-
-        ) &
-    
-    done
-
-
-
-}
 

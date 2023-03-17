@@ -9,7 +9,7 @@ MAKEFLAGS += --no-builtin-rules
 
 
 all:
-	./scripts/make-targets/build.sh $(TARGET)
+	./scripts/make-targets/build.sh $(TARGETS)
 
 GO ?= $(shell which go)
 

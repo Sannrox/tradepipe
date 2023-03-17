@@ -6,7 +6,7 @@ set -o pipefail
 
 
 
-clean_with_patter(){
+function clean::with_patter(){
     pattern="$1"
 
     for path in $(echo "$pattern"); do

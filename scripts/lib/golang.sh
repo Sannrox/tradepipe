@@ -5,9 +5,17 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-
+set -x
 
 readonly GO_PACKAGE=github.com/Sannrox/tradepipe
+
+readonly SERVER_PLATFORMS=(
+    linux/amd64
+    # linux/arm
+    # linux/arm64
+    # darwin/amd64
+    # windows/amd64
+)
 
 GOOS="$(go env GOOS)"
 
@@ -17,11 +25,6 @@ if [ "${GOARCH}" = "arm" ]; then
 	GOARM="$(go env GOARM)"
 fi
 
-PLATFORM=${PLATFORM:-}
-PLATFORM_LDFLAGS=
-if test -n "${PLATFORM}"; then
-	PLATFORM_LDFLAGS="-X \"main.PlatformName=${PLATFORM}\""
-fi
 
 
 PLATFORM=${PLATFORM:-}
@@ -29,16 +32,7 @@ VERSION=${VERSION:-$(git describe --tags --abbrev=0 || echo "1.0.0")}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
-LDFLAGS="\
-    -w \
-    ${PLATFORM_LDFLAGS} \
-    -X \"main.GitCommit=${GITCOMMIT}\" \
-    -X \"main.BuildTime=${BUILDTIME}\" \
-    -X \"main.Version=${VERSION}\" \
-    -X \"main.BuildArch=${GOARCH}\" \
-    -X \"main.BuildOs=${GOOS}\" \
-    ${LDFLAGS:-} \
-"
+
 
 
 function golang::server_targets(){
@@ -55,11 +49,58 @@ readonly SERVER_TARGETS
 readonly SERVER_BINARIES=("${SERVER_TARGETS[@]##*/}")
 
 
-golang_build() {
-    TARGET_PATH="$1"
-    NAME=$(basename "$1")
-    TARGET="${OUTPUT_BINPATH}/${NAME}-${GOOS}-${GOARCH}"
-    SOURCE="${GO_MODULE_URL}/${TARGET_PATH}"
+function golang::build_binaries(){
+    (
+        local host_platform
+        host_platform="$(go env GOOS)/$(go env GOARCH)"
+
+        local -a platform 
+        IFS=" " read -r -a platform <<< "${SERVER_PLATFORMS[@]}"
+        if [[ ${#platform[@]} -eq 0 ]]; then
+            platform=("${host_platform}")
+
+        fi
+
+
+        local -a binaries 
+        IFS=" " read -r -a binaries <<< "${SERVER_BINARIES[@]}"
+
+
+        for platform in "${platform[@]}"; do
+            golang::build_binaries_for_plattform "${platform}"
+        done
+
+    )
+
+}
+
+
+function golang::build_binaries_for_plattform() {
+    local -a ldflags=()
+    local -r platform="$1"
+
+    ldflags+=(
+    -w 
+    -X \"main.PlatformName="${platform}"\"
+    -X \"main.GitCommit="${GITCOMMIT}"\"
+    -X \"main.BuildTime="${BUILDTIME}"\"
+    -X \"main.Version="${VERSION}"\"
+    -X \"main.BuildArch="${platform##*/}"\"
+    -X \"main.BuildOs="${platform%%/*}"\"
+    ${LDFLAGS:-} 
+    )
+
+    for binary in ${binaries[@]}; do
+        golang::build_binary "${binary}"
+    done
+}
+
+
+function golang::build_binary() {
+    local -r target_path="$1"
+    local -r target_name="${target_path##*/}"
+    local -r target="${OUTPUT_BINPATH}/${platform}/${target_name}-${platform}"
+    local -r source="${GO_MODULE_URL}/${target_path}"
 
     : "${CGO_ENABLED=}"
     : "${GO_LINKMODE=static}"
@@ -67,14 +108,23 @@ golang_build() {
     : "${GO_BUILDTAGS=}"
     : "${GO_STRIP=}"
 
-    echo "Building $GO_LINKMODE $(basename "${TARGET}")"
+    echo "Building $GO_LINKMODE ${target_name}"
 
     export GO111MODULE=auto
 
-    go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
+    build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags[@]}" ${GO_BUILDMODE} "${source}")
 
-    echo ">> build ${TARGET}"
+    build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
+        cat <<EOF >&2 
+Error building ${target_name}:
+${build_cmd_output}
+EOF
+        exit 1
+    }
+    echo "Built ${target}"
 }
+
+
 
 
 

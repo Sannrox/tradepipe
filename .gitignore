@@ -5,3 +5,4 @@ tradepipe.txt
 */**/cert.pem
 */**/key.pem
 _output
+.cache/
