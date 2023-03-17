@@ -5,7 +5,6 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-set -x
 
 ROOT_PATH=$(dirname "${BASH_SOURCE[0]}")/..
 
@@ -17,6 +16,6 @@ source "${ROOT_PATH}/build/lib/release.sh"
 CMD_TARGETST=${SERVER_TARGETS[*]}
 
 build::build_image
-build::run_build_command make all TARGETS="${CMD_TARGETST}"
+build::run_build_command make all TARGETS="${CMD_TARGETST}" BUILD_PLATFORMS="${SERVER_PLATFORMS[*]}"
 
-#release::build_server_images
+release::build_server_images

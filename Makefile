@@ -1,9 +1,13 @@
 # Version: 1.0
 
 
+SHELL := /usr/bin/env bash -o errexit -o pipefail -o nounset
 # We don't need make's built-in rules.
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
+
+.EXPORT_ALL_VARIABLES:
+
 
 .PHONY: test lint deps format build coverage coverhtml grpc rest
 

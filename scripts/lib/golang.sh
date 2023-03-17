@@ -11,9 +11,7 @@ readonly GO_PACKAGE=github.com/Sannrox/tradepipe
 readonly SERVER_PLATFORMS=(
     linux/amd64
     # linux/arm
-    # linux/arm64
-    darwin/amd64
-    # windows/amd64
+    linux/arm64
 )
 
 GOOS="$(go env GOOS)"
@@ -54,7 +52,7 @@ function golang::build_binaries(){
         host_platform="$(go env GOOS)/$(go env GOARCH)"
 
         local -a platform 
-        IFS=" " read -r -a platform <<< "${SERVER_PLATFORMS[@]}"
+        IFS=" " read -r -a platform <<< "${BUILD_PLATFORMS:-}"
         if [[ ${#platform[@]} -eq 0 ]]; then
             platform=("${host_platform}")
 
@@ -111,7 +109,7 @@ function golang::build_binaries_for_plattform() {
 function golang::build_binary() {
     local -r target_path="$1"
     local -r target_name="${target_path##*/}"
-    local -r target="${OUTPUT_BINPATH}/${platform}/${target_name}-${os}-${arch}"
+    local -r target="${OUTPUT_BINPATH}/${platform}/${target_name}"
     local -r source="${GO_MODULE_URL}/${target_path}"
 
     : "${CGO_ENABLED=}"
@@ -124,15 +122,15 @@ function golang::build_binary() {
 
     export GO111MODULE=auto
 
-    go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}" 
+    build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}" )
 
-#     build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
-#         cat <<EOF >&2 
-# Error building ${target_name}:
-# ${build_cmd_output}
-# EOF
-#         exit 1
-#     }
+    build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
+        cat <<EOF >&2 
+Error building ${target_name}:
+${build_cmd_output}
+EOF
+        exit 1
+    }
     echo "Built ${target}"
 }
 

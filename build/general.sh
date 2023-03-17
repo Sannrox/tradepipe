@@ -25,22 +25,17 @@ readonly BASE_IMAGE="golang:1.20.2-bullseye"
 readonly BUILD_IMAGE_REPO="tradepipe"
 
 readonly LOCAL_OUTPUT_ROOT="${ROOT_PATH}/_output"
-readonly LOCAL_OUTPUT_SUBPATH="${LOCAL_OUTPUT_ROOT}/dockerized"
-readonly LOCAL_OUTPUT_BINPATH="${LOCAL_OUTPUT_SUBPATH}/bin"
-readonly LOCAL_OUTPUT_GOPATH="${LOCAL_OUTPUT_SUBPATH}/go"
-readonly LOCAL_OUTPUT_IMAGES="${LOCAL_OUTPUT_SUBPATH}/images"
-readonly HTTP_SERVER_IMAGE="${HTTP_SERVER_IMAGE:-"http-server"}"
-readonly GRPC_SERVER_IMAGE="${GRPC_SERVER_IMAGE:-"grpc-server"}"
+readonly LOCAL_OUTPUT_BINPATH="${LOCAL_OUTPUT_ROOT}/bin"
+readonly LOCAL_OUTPUT_IMAGES="${LOCAL_OUTPUT_ROOT}/images"
 
-# This is a symlink to binaries for "this platform" (e.g. build tools).
-readonly THIS_PLATFORM_BIN="${LOCAL_OUTPUT_ROOT}/bin"
 
 readonly REMOTE_ROOT="/go/src/${GO_PACKAGE}"
 readonly REMOTE_OUTPUT_ROOT="${REMOTE_ROOT}/_output"
-readonly REMOTE_OUTPUT_SUBPATH="${REMOTE_OUTPUT_ROOT}/dockerized"
-readonly REMOTE_OUTPUT_BINPATH="${REMOTE_OUTPUT_SUBPATH}/bin"
-readonly REMOTE_OUTPUT_GOPATH="${REMOTE_OUTPUT_SUBPATH}/go"
+readonly REMOTE_OUTPUT_BINPATH="${REMOTE_OUTPUT_ROOT}/bin"
 
+
+readonly GRPC_SERVER_BASE_IMAGE="${GRPC_SERVER_BASE_IMAGE:-$BASE_IMAGE}"
+readonly HTTP_SERVER_BASE_IMAGE="${HTTP_SERVER_BASE_IMAGE:-$BASE_IMAGE}"
 
 
 GIT_BRANCH=$(git symbolic-ref --short -q HEAD > /dev/null 2>&1 || true)
@@ -53,7 +48,7 @@ DATA_CONTAINER_BASE_NAME="build-data"
 DATA_CONTAINER_NAME="${DATA_CONTAINER_BASE_NAME}-${GIT_COMMIT_HASH}"
 
 DOCKER_MOUNT_AGRS=(--volumes-from "${DATA_CONTAINER_NAME}" --volume "${ROOT_PATH}:${REMOTE_ROOT}")
-LOCAL_OUTPUT_BUILD_CONTEXT="${LOCAL_OUTPUT_SUBPATH}/${BUILD_IMAGE}"
+LOCAL_OUTPUT_BUILD_CONTEXT="${LOCAL_OUTPUT_ROOT}/${BUILD_IMAGE}"
 
 
 
@@ -158,7 +153,6 @@ function build::load_data_container(){
     if [[ "${ret}" -ne 0 ]]; then 
         echo "Creating data container ${DATA_CONTAINER_NAME}"
 
-        mkdir -p  "${LOCAL_OUTPUT_GOPATH}"
 
         local -ra docker_run_cmd=(
             "${DOCKER[@]}" run
@@ -241,7 +235,9 @@ function build::run_build_command_in_build_image(){
 
     # To add more options to the docker run command, add them to the array above
     docker_run_opts+=(
+        --env "BUILD_PLATFORMS=${BUILD_PLATFORMS:-}"
     )
+
 
     if [[ -t 0 ]]; then 
         docker_run_opts+=(--interactive --tty)
@@ -250,7 +246,6 @@ function build::run_build_command_in_build_image(){
     fi
 
     local -ra docker_run_cmd=(${DOCKER[@]} run "${docker_run_opts[@]}" "${BUILD_IMAGE}")
-
     #Clean up old containers
     build::docker_destroy_container "${container_name}"
     "${docker_run_cmd[@]}" "${docker_cmd[@]}"
@@ -285,13 +280,9 @@ EOF
 }
 
 function build::get_docker_wrapped_binaries() {
-    targets="tradegrpc,${GRPC_SERVER_IMAGE}\
-        tradehttp,${HTTP_SERVER_IMAGE}"
+    targets="tradegrpc,${GRPC_SERVER_BASE_IMAGE}\
+        tradehttp,${HTTP_SERVER_BASE_IMAGE}"
 
     echo "${targets}"
 }
-
-
-
-
 
