@@ -27,6 +27,7 @@ readonly BUILD_IMAGE_REPO="tradepipe"
 readonly LOCAL_OUTPUT_ROOT="${ROOT_PATH}/_output"
 readonly LOCAL_OUTPUT_BINPATH="${LOCAL_OUTPUT_ROOT}/bin"
 readonly LOCAL_OUTPUT_IMAGES="${LOCAL_OUTPUT_ROOT}/images"
+readonly LOCAL_CHACHE="${ROOT_PATH}/.cache"
 
 
 readonly REMOTE_ROOT="/go/src/${GO_PACKAGE}"
@@ -128,6 +129,11 @@ function build::clean(){
     if [[ -d "${LOCAL_OUTPUT_ROOT}" ]]; then
         echo "Cleaning ${LOCAL_OUTPUT_ROOT}"
         rm -rf "${LOCAL_OUTPUT_ROOT}"
+    fi
+
+    if [[ -d "${LOCAL_CHACHE}" ]]; then
+        echo "Cleaning ${LOCAL_CHACHE}"
+        rm -rf "${LOCAL_CHACHE}"
     fi
 }
 
