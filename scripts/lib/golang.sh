@@ -77,18 +77,20 @@ function golang::build_binaries(){
 
 function golang::build_binaries_for_plattform() {
     local -a ldflags=()
+    local platform_ldflags
     local -r platform="$1"
 
-    ldflags+=(
-    -w 
-    -X \"main.PlatformName="${platform}"\"
-    -X \"main.GitCommit="${GITCOMMIT}"\"
-    -X \"main.BuildTime="${BUILDTIME}"\"
-    -X \"main.Version="${VERSION}"\"
-    -X \"main.BuildArch="${platform##*/}"\"
-    -X \"main.BuildOs="${platform%%/*}"\"
-    ${LDFLAGS:-} 
-    )
+    platform_ldflags="-X main.PlatformName=${platform}"
+    ldflags="
+    -w \
+    ${platform_ldflags} \
+    -X \"main.GitCommit=${GITCOMMIT}\" \
+    -X \"main.BuildTime=${BUILDTIME}\" \
+    -X \"main.Version=${VERSION}\" \
+    -X \"main.BuildArch=${platform##*/}\" \ 
+    -X \"main.BuildOs=${platform%%/*}\" \
+    ${LDFLAGS:-}  \
+    "
 
     for binary in ${binaries[@]}; do
         golang::build_binary "${binary}"
@@ -112,7 +114,7 @@ function golang::build_binary() {
 
     export GO111MODULE=auto
 
-    build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags[@]}" ${GO_BUILDMODE} "${source}")
+    build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}")
 
     build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
         cat <<EOF >&2 
