@@ -5,7 +5,6 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-set -x
 
 readonly GO_PACKAGE=github.com/Sannrox/tradepipe
 
@@ -13,7 +12,7 @@ readonly SERVER_PLATFORMS=(
     linux/amd64
     # linux/arm
     # linux/arm64
-    # darwin/amd64
+    darwin/amd64
     # windows/amd64
 )
 
@@ -61,10 +60,19 @@ function golang::build_binaries(){
 
         fi
 
+        local -a targets=()
+        for arg; do 
+            if [[ "${arg}" == -* ]]; then
+                continue
+            else 
+                targets+=("${arg}")
+            fi
+        done
 
-        local -a binaries 
-        IFS=" " read -r -a binaries <<< "${SERVER_BINARIES[@]}"
 
+        if [[ ${#targets[@]} -eq 0 ]]; then
+            targets=("${SERVER_TARGETS[@]}")
+        fi
 
         for platform in "${platform[@]}"; do
             golang::build_binaries_for_plattform "${platform}"
@@ -79,21 +87,23 @@ function golang::build_binaries_for_plattform() {
     local -a ldflags=()
     local platform_ldflags
     local -r platform="$1"
+    local arch="${platform##*/}"
+    local os="${platform%%/*}"
 
-    platform_ldflags="-X main.PlatformName=${platform}"
-    ldflags="
+    platform_ldflags="-X \"main.PlatformName=${platform}\""
+    ldflags="\
     -w \
     ${platform_ldflags} \
     -X \"main.GitCommit=${GITCOMMIT}\" \
     -X \"main.BuildTime=${BUILDTIME}\" \
     -X \"main.Version=${VERSION}\" \
-    -X \"main.BuildArch=${platform##*/}\" \ 
-    -X \"main.BuildOs=${platform%%/*}\" \
-    ${LDFLAGS:-}  \
-    "
+    -X \"main.BuildArch=${arch}\" \
+    -X \"main.BuildOs=${os}\" \
+    ${LD_FLAGS:-} \
+"
 
-    for binary in ${binaries[@]}; do
-        golang::build_binary "${binary}"
+    for target in ${targets[@]}; do
+        golang::build_binary "${target}"
     done
 }
 
@@ -101,7 +111,7 @@ function golang::build_binaries_for_plattform() {
 function golang::build_binary() {
     local -r target_path="$1"
     local -r target_name="${target_path##*/}"
-    local -r target="${OUTPUT_BINPATH}/${platform}/${target_name}-${platform}"
+    local -r target="${OUTPUT_BINPATH}/${platform}/${target_name}-${os}-${arch}"
     local -r source="${GO_MODULE_URL}/${target_path}"
 
     : "${CGO_ENABLED=}"
@@ -114,15 +124,15 @@ function golang::build_binary() {
 
     export GO111MODULE=auto
 
-    build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}")
+    go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}" 
 
-    build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
-        cat <<EOF >&2 
-Error building ${target_name}:
-${build_cmd_output}
-EOF
-        exit 1
-    }
+#     build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
+#         cat <<EOF >&2 
+# Error building ${target_name}:
+# ${build_cmd_output}
+# EOF
+#         exit 1
+#     }
     echo "Built ${target}"
 }
 
