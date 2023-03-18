@@ -73,11 +73,11 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 	if s.baseHTTPClient != nil {
 		client.SetHTTPClient(s.baseHTTPClient)
 	}
-	if s.baseURL != "" {
+	if len(s.baseURL) != 0 {
 		client.SetBaseURL(s.baseURL)
 	}
 
-	if s.wsURL != "" {
+	if len(s.wsURL) != 0 {
 		client.SetWSBaseURL(s.wsURL)
 	}
 	if s.overWriteTls {

@@ -78,6 +78,10 @@ func NewAPIClient() *APIClient {
 	}
 }
 
+// func (api *APIClient) SetMutex(mut sync.Locker) {
+// 	api.Lock = mut
+// }
+
 func (api *APIClient) SetTLSConfig(config *tls.Config) {
 	api.TLSConfig = config
 }

@@ -64,11 +64,11 @@ func Login(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.Error != "" {
+	if len(resp.Error) != 0 {
 		t.Fatal(resp.Error)
 	}
 
-	if resp.ProcessId == "" {
+	if len(resp.ProcessId) == 0 {
 		t.Fatal("ProcessID is empty")
 	}
 	if resp.ProcessId != "1234567890" {
@@ -92,7 +92,7 @@ func Verify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.Error != "" {
+	if len(resp.Error) != 0 {
 		t.Fatal(resp.Error)
 	}
 
@@ -113,7 +113,7 @@ func Timeline(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.Error != "" {
+	if len(resp.Error) != 0 {
 		t.Fatal(resp.Error)
 	}
 
@@ -134,7 +134,7 @@ func TimelineDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.Error != "" {
+	if len(resp.Error) != 0 {
 		t.Fatal(resp.Error)
 	}
 
@@ -155,7 +155,7 @@ func Portfolio(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.Error != "" {
+	if len(resp.Error) != 0 {
 		t.Fatal(resp.Error)
 	}
 

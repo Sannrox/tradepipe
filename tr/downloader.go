@@ -3,6 +3,7 @@ package tr
 import (
 	"bufio"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -27,8 +29,21 @@ type Downloader struct {
 }
 
 func NewDownloader(client APIClient) *Downloader {
-	return &Downloader{TR: client, HistoryFile: "history.txt", FilenameFmt: "%s_%s_%s_%s_%s.pdf", OutputPath: "./tmp/"}
+	return &Downloader{TR: client, FilenameFmt: "%s_%s_%s_%s_%s.pdf"}
 }
+
+func (d *Downloader) SetOutputPath(path string) {
+	d.OutputPath = path
+}
+
+func (d *Downloader) SetHistoryFile(path string) {
+	d.HistoryFile = path
+}
+
+func (d *Downloader) SetFilenameFmt(fmt string) {
+	d.FilenameFmt = fmt
+}
+
 func (d *Downloader) DownloadDocument(docUrl string, filePath string) error {
 	resp, err := d.TR.Client.Get(docUrl)
 	if err != nil {
@@ -59,8 +74,8 @@ func (d *Downloader) Download(doc Doc, titleText string, subTitleText string, su
 		time = matches[0]
 	}
 	var dir string
-	if subFolder != "" {
-		dir = d.OutputPath + subFolder
+	if len(subFolder) != 0 {
+		dir = d.OutputPath + subFolder + "/"
 	} else {
 		dir = d.OutputPath
 	}
@@ -126,7 +141,7 @@ func (d *Downloader) Download(doc Doc, titleText string, subTitleText string, su
 
 func (d *Downloader) DownloadAll(ctx context.Context, data chan Message) error {
 
-	if d.HistoryFile != "" {
+	if len(d.HistoryFile) != 0 {
 		err := d.ReadHistoryFile()
 		if err != nil {
 			logrus.Error("Error reading history file: ", err)
@@ -163,11 +178,66 @@ func (d *Downloader) DownloadAll(ctx context.Context, data chan Message) error {
 		if err := d.CreateOutputDir(); err != nil {
 			return err
 		}
-		d.WriteFile(d.TimeLine.TimeLineEventsWithDocs, "timelineEventsWithDocs.json")
-		d.WriteFile(d.TimeLine.TimelineEventsWithoutDocs, "timelineEventsWithoutDocs.json")
 
-		// ExportTransactions("", d.OutputPath)
-		// }
+		if err := d.ExportAccountTransactionsCSV(); err != nil {
+			return err
+		}
+		if err := d.ExportTransactionsJSON(); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (d *Downloader) ExportAccountTransactionsCSV() error {
+	logrus.Info("Write deposit and removal transactions to CSV file")
+	outputFile, err := os.Create(d.OutputPath + "/" + "AccountTransactionsTradeRepublic.csv")
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	writer := csv.NewWriter(outputFile)
+	defer writer.Flush()
+
+	writer.Write([]string{"Datum", "Type", "Werte"})
+	for _, event := range d.TimeLine.GetTimeLineEventsWithoutDocs() {
+		title := event.Data.Title
+		unixTime := time.Unix(event.Data.Timestamp, 0)
+		formattedTime := unixTime.Format("2006-01-02T15:04")
+
+		if strings.Contains(event.Data.Body, "storniert") {
+			continue
+		}
+		if strings.Contains(title, "Einzahlung") || strings.Contains(title, "Bonuszahlung") {
+			writer.Write([]string{formattedTime, "deposit", fmt.Sprintf("%f", event.Data.CashChangeAmount)})
+		} else if strings.Contains(title, "Auszahlung") {
+			writer.Write([]string{formattedTime, "removal", fmt.Sprintf("%f", event.Data.CashChangeAmount)})
+		} else if strings.Contains(title, "Reinvestierung") {
+			logrus.Warn("Reinvestierung not implemented")
+		}
+
+	}
+	return nil
+}
+func (d *Downloader) ExportTransactionsJSON() error {
+	logrus.Info("Write deposit and removal transactions to JSON file")
+	outputFile, err := os.Create(d.OutputPath + "/" + "TradeRepublic.json")
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	writer := bufio.NewWriter(outputFile)
+	defer writer.Flush()
+
+	for _, ele := range d.TimeLine.TimeLineEvents {
+		b, err := json.Marshal(ele)
+		if err != nil {
+			return err
+		}
+		writer.Write(b)
 	}
 	return nil
 }
@@ -229,7 +299,7 @@ func (d *Downloader) CreateOutputDir() error {
 	if !filePathExists(d.OutputPath) {
 		err := os.MkdirAll(d.OutputPath, 0o755)
 		if err != nil {
-			logrus.Error("Error creating output directory: ", err)
+			logrus.Error("Error creating output directory ", d.OutputPath, " : ", err)
 			return err
 		}
 	}
@@ -255,7 +325,6 @@ func (d *Downloader) WriteFile(data []TimeLineEvent, filename string) error {
 }
 
 func (d *Downloader) ReadHistoryFile() error {
-	d.HistoryFile = filepath.Join(d.OutputPath, "history.txt")
 	if filePathExists(d.HistoryFile) {
 		file, err := os.Open(d.HistoryFile)
 		if err != nil {

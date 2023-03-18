@@ -11,6 +11,7 @@ import (
 
 	"github.com/Sannrox/tradepipe/logger"
 	"github.com/Sannrox/tradepipe/tr"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -24,8 +25,10 @@ var (
 )
 
 type TradePipeOptions struct {
-	Debug   bool
-	LogFile string
+	Debug       bool
+	LogFile     string
+	OutputPath  string
+	HistoryFile string
 }
 
 func NewTradePipeCmd() *cobra.Command {
@@ -35,26 +38,40 @@ func NewTradePipeCmd() *cobra.Command {
 		Short:            "tradepipe is a command line tool for interacting with the TradeMe API",
 		Long:             `tradepipe is a command line tool for interacting with the TradeMe API.`,
 		TraverseChildren: true,
+		Args:             cobra.ExactArgs(2),
 		Version:          fmt.Sprintf("%s, built: %s ", Version, GitCommit),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Debug {
 				logger.Enable()
 			}
-			if err := logger.SetLogFile(opts.LogFile); err != nil {
-				return err
+			if len(opts.LogFile) != 0 {
+				if err := logger.SetLogFile(opts.LogFile); err != nil {
+					return err
+				}
 			}
-			return ExecuteCLI(args)
+
+			if len(opts.OutputPath) == 0 {
+				if path, err := os.Getwd(); err != nil {
+					return err
+				} else {
+					logrus.Debug("No path set using current directory", path)
+					opts.OutputPath = path
+				}
+			}
+			return ExecuteCLI(args, opts.OutputPath, opts.HistoryFile)
 		},
 	}
 	cmd.Flags().BoolVarP(&opts.Debug, "debug", "d", false, "Enable debug logging")
 	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "", "Log file to write to")
+	cmd.Flags().StringVarP(&opts.OutputPath, "out", "o", "", "Directory in which you want to write the files")
+	cmd.Flags().StringVar(&opts.HistoryFile, "history", "history.txt", "From which you want to write and read the history")
 	return cmd
 }
 
-func ExecuteCLI(args []string) error {
+func ExecuteCLI(args []string, outpath string, historyfile string) error {
 
-	number := args[1]
-	pin := args[2]
+	number := args[0]
+	pin := args[1]
 
 	client := tr.NewAPIClient()
 
@@ -88,6 +105,9 @@ func ExecuteCLI(args []string) error {
 	time.Sleep(20 * time.Second)
 
 	dl := tr.NewDownloader(*client)
+
+	dl.SetHistoryFile(historyfile)
+	dl.SetOutputPath(outpath)
 	dl.DownloadAll(ctx, data)
 
 	return nil

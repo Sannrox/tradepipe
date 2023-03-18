@@ -1,15 +1,18 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # Build a static binary for the host OS/ARCH
 #
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
 
 VERSION=${VERSION:-$(git describe --tags --abbrev=0)}
 BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 LASTMODIFIEDDATE=${LASTMODIFIEDDATE:-$(ls -l CHANGELOG.md | awk '{print $6,  $7, $8}')}
 
-echo ${LASTMODIFIEDDATE}
+echo "${LASTMODIFIEDDATE}"
 
 echo "### [${VERSION}] - ${BUILDTIME}" >> CHANGELOG.md
 echo "<details>" >> CHANGELOG.md

@@ -20,9 +20,10 @@ type TimeLineEvent struct {
 			Type    string      `json:"type,omitempty"`
 			Payload interface{} `json:"payload,omitempty"`
 		} `json:"action,omitempty"`
-		ActionLabel string        `json:"actionLabel,omitempty"`
-		Attributes  []interface{} `json:"attributes"`
-		Month       string        `json:"month"`
+		ActionLabel      string        `json:"actionLabel,omitempty"`
+		Attributes       []interface{} `json:"attributes"`
+		Month            string        `json:"month"`
+		CashChangeAmount float64       `json:"cashChangeAmount,omitempty"`
 	} `json:"data"`
 }
 
