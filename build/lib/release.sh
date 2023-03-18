@@ -5,7 +5,6 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-set -x
 
 readonly RELEASE_STAGE_PATH="${LOCAL_OUTPUT_ROOT}/release-stage"
 readonly RELEASE_IMAGES_PATH="${LOCAL_OUTPUT_ROOT}/release-images"
@@ -62,7 +61,7 @@ function release::create_server_images(){
         binary_name="${wrapped%%,*}"
         base_image="${wrapped##*,}"
         binary_path="${binary_dir}/${binary_name}"
-        docker_build_path="${binary_dir}.dockerbuild"
+        docker_build_path="${binary_path}.dockerbuild"
         docker_image_tag="${docker_registry}${binary_name}:${docker_tag}-${arch}"
         docker_file_path="${ROOT_PATH}/build/server-image/Dockerfile"
 
