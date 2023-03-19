@@ -16,5 +16,5 @@ openapi_gen(){
 
 
 openapi_install(){
-    go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+    go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4
 }

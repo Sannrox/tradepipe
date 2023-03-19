@@ -27,6 +27,11 @@ type Alive struct {
 	Status     *string `json:"status,omitempty"`
 }
 
+// ErrorModel defines model for ErrorModel.
+type ErrorModel struct {
+	Message string `json:"message"`
+}
+
 // Login defines model for Login.
 type Login struct {
 	Number string `json:"number"`
@@ -41,6 +46,12 @@ type Positions struct {
 
 // ProcessId defines model for ProcessId.
 type ProcessId = string
+
+// Savingsplans defines model for Savingsplans.
+type Savingsplans struct {
+	Message      *string       `json:"message,omitempty"`
+	Savingsplans []interface{} `json:"savingsplans"`
+}
 
 // Timeline defines model for Timeline.
 type Timeline struct {
@@ -63,6 +74,9 @@ type Verified struct {
 type Verify struct {
 	Token string `json:"token"`
 }
+
+// InternalServerError defines model for InternalServerError.
+type InternalServerError = ErrorModel
 
 // TimelineParams defines parameters for Timeline.
 type TimelineParams struct {
@@ -164,6 +178,9 @@ type ClientInterface interface {
 	// Positions request
 	Positions(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Savingsplans request
+	Savingsplans(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Timeline request
 	Timeline(ctx context.Context, processId string, params *TimelineParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -214,6 +231,18 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Positions(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPositionsRequest(c.Server, processId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Savingsplans(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSavingsplansRequest(c.Server, processId)
 	if err != nil {
 		return nil, err
 	}
@@ -356,6 +385,40 @@ func NewPositionsRequest(server string, processId string) (*http.Request, error)
 	}
 
 	operationPath := fmt.Sprintf("/%s/positions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSavingsplansRequest generates requests for Savingsplans
+func NewSavingsplansRequest(server string, processId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "processId", runtime.ParamLocationPath, processId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/%s/savingsplan", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -582,6 +645,9 @@ type ClientWithResponsesInterface interface {
 	// Positions request
 	PositionsWithResponse(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*PositionsResponse, error)
 
+	// Savingsplans request
+	SavingsplansWithResponse(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*SavingsplansResponse, error)
+
 	// Timeline request
 	TimelineWithResponse(ctx context.Context, processId string, params *TimelineParams, reqEditors ...RequestEditorFn) (*TimelineResponse, error)
 
@@ -599,7 +665,7 @@ type AliveResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Alive
 	JSON401      *Alive
-	JSON500      *Alive
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -623,7 +689,7 @@ type LoginResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ProcessId
 	JSON401      *ProcessId
-	JSON500      *ProcessId
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -647,7 +713,7 @@ type PositionsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Positions
 	JSON401      *Positions
-	JSON500      *Positions
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -666,12 +732,36 @@ func (r PositionsResponse) StatusCode() int {
 	return 0
 }
 
+type SavingsplansResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Savingsplans
+	JSON401      *Savingsplans
+	JSON500      *ErrorModel
+}
+
+// Status returns HTTPResponse.Status
+func (r SavingsplansResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SavingsplansResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type TimelineResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Timeline
 	JSON401      *Timeline
-	JSON500      *Timeline
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -695,7 +785,7 @@ type TimelineDetailsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *TimelineDetails
 	JSON401      *TimelineDetails
-	JSON500      *TimelineDetails
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -719,7 +809,7 @@ type VerifyResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *Verified
 	JSON401      *Verified
-	JSON500      *Verified
+	JSON500      *ErrorModel
 }
 
 // Status returns HTTPResponse.Status
@@ -771,6 +861,15 @@ func (c *ClientWithResponses) PositionsWithResponse(ctx context.Context, process
 		return nil, err
 	}
 	return ParsePositionsResponse(rsp)
+}
+
+// SavingsplansWithResponse request returning *SavingsplansResponse
+func (c *ClientWithResponses) SavingsplansWithResponse(ctx context.Context, processId string, reqEditors ...RequestEditorFn) (*SavingsplansResponse, error) {
+	rsp, err := c.Savingsplans(ctx, processId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSavingsplansResponse(rsp)
 }
 
 // TimelineWithResponse request returning *TimelineResponse
@@ -837,7 +936,7 @@ func ParseAliveResponse(rsp *http.Response) (*AliveResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Alive
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -877,7 +976,7 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ProcessId
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -917,7 +1016,47 @@ func ParsePositionsResponse(rsp *http.Response) (*PositionsResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Positions
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSavingsplansResponse parses an HTTP response from a SavingsplansWithResponse call
+func ParseSavingsplansResponse(rsp *http.Response) (*SavingsplansResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SavingsplansResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Savingsplans
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Savingsplans
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -957,7 +1096,7 @@ func ParseTimelineResponse(rsp *http.Response) (*TimelineResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Timeline
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -997,7 +1136,7 @@ func ParseTimelineDetailsResponse(rsp *http.Response) (*TimelineDetailsResponse,
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest TimelineDetails
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1037,7 +1176,7 @@ func ParseVerifyResponse(rsp *http.Response) (*VerifyResponse, error) {
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Verified
+		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1059,6 +1198,9 @@ type ServerInterface interface {
 	// positions
 	// (GET /{processId}/positions)
 	Positions(ctx echo.Context, processId string) error
+	// savingsplans
+	// (GET /{processId}/savingsplan)
+	Savingsplans(ctx echo.Context, processId string) error
 	// timeline
 	// (GET /{processId}/timeline)
 	Timeline(ctx echo.Context, processId string, params TimelineParams) error
@@ -1106,6 +1248,22 @@ func (w *ServerInterfaceWrapper) Positions(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Positions(ctx, processId)
+	return err
+}
+
+// Savingsplans converts echo context to params.
+func (w *ServerInterfaceWrapper) Savingsplans(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "processId" -------------
+	var processId string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "processId", runtime.ParamLocationPath, ctx.Param("processId"), &processId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter processId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.Savingsplans(ctx, processId)
 	return err
 }
 
@@ -1206,6 +1364,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/alive", wrapper.Alive)
 	router.POST(baseURL+"/login", wrapper.Login)
 	router.GET(baseURL+"/:processId/positions", wrapper.Positions)
+	router.GET(baseURL+"/:processId/savingsplan", wrapper.Savingsplans)
 	router.GET(baseURL+"/:processId/timeline", wrapper.Timeline)
 	router.GET(baseURL+"/:processId/timelinedetails", wrapper.TimelineDetails)
 	router.POST(baseURL+"/:processId/verify", wrapper.Verify)
@@ -1215,21 +1374,22 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+yXz27jNhDGX0WY9qiulO62B9222MsCOQRo0EuQAy2NbKYUyQwpA4ahdy9I6p8t2ZAL",
-	"K+1hT1HM4XwfOT+NyCPkqtJKorQGsiOYfIcV849fBd+je9CkNJLlGCKQ9kjPvPJjpaKKWciAS/v7F4jB",
-	"HjSGf3GLBE0MxjJb+6ntmLHE5Raapo9WmzfMrQt+VFsup6KyrjZIMzli0CF+mpvwveaEBWQv3fwQ/Tqj",
-	"+6QMt1xJM9Wu0Bi2xXnx8bR2lBGxw8TBEDkrTypHY74XsypuswWXeJs3O5p11VofOOes0/6GlnFh/p2F",
-	"0eRFTrr4OUN/IfGSY3GLk+ZSnsM0i1V/4wKiQtjUoIvjslQuQ4EmJ65d2SGD5x030VfNI26i2mARWRVV",
-	"TLItRnaHkSVWoOYaI6a14Dnz09weWuEE+vFfmOYQwx7JhMQPn9JPqVuS0ijdYAaf/U8xaGZ3flUJ697m",
-	"Ldqptz/9Oxqp0lsJrzj4hOR9ODDbhuC2wWglTdiuX9PU/cmVtCh95pH95M0oObQV9/QzYQkZ/JQMfSdp",
-	"m04SBPwWntnzhiK2Z1ywjUC32C/pw4cJl4o2vChQOuHfPmLF36VFkky0tYiQSJGH0NRVxejQF83/mIi+",
-	"byozU1/fVh1wrrynfJ3WOPTfgDoa+4cqDndbbMg9s9jgLicsUFrOhIHxu2apxmZF6obee9GaqXMXUtbi",
-	"3uQtEC8ZF1jcm7yrwkvo66oZQ3LUXbImOfkizvaaR8UKEx1UTdEQfM7h02hEM2IVWiQD2csRHOe+sUEM",
-	"krljCPT6E3Di0XacN/TXNaHq/c9sbz+4JljLDKwE1zXxJXDpUYIzwMbHmit8uUbnnAm0GPVzzjF7HgbW",
-	"oixuc73XSIchmeEyd7LDxP4oXajafeP6o0V7eF0X2H4nZirWja2I6yL5dWC9Jr2EVTvMv4BqMRx/byU2",
-	"6uZeIvdbP/4D4JMN+W85XuJiXZyvOLiF6qJPcwb3frg/zR45w/3KU12bmdtEe/9a+fN+/1Ns6/t/d4zt",
-	"78UzztparIf9AvF1aL8mvATzcTVDWKCwJgEZ7KzVWZIIlTOxU8Zmn9M0TfYPCTSvzT8BAAD//9tFmHo7",
-	"EwAA",
+	"H4sIAAAAAAAC/+xXTY/bNhD9KwLboxo5bVoEuqVIDwFSIMAuegn2wBXHNlOKZGYoA4bh/16QlCnJ5hp2",
+	"IfUDyM3mfLxH8umRPLDGtNZo0I5YfWAIZI0mCH8+aAeouXoA3AH+hmjQDzdGO9DO/+TWKtlwJ42uvpDR",
+	"foyaLbTc//oeYc1q9l01YFQxSlXo9rsRoNjxeCyZAGpQWt+J1Qm5iNBFxPZ5fb1v/07JHfgfFo0FdDKy",
+	"plDyKNsQWxtsuWM1k9r98oaVzO0txL+wAWS+peOuC6V9jBxKvQlw/Yh5/gKN88kj3hfILRDxDeQ7IXzt",
+	"JIJg9eeU+JQB+Gg2Ul/21l37DJhpXTIb869D9vUxO4f7yZD0q0/3zKtkdlzWRzki318wGDKz8GgaIPog",
+	"sigPfCf1hqzi9/Kjs8qrFCfJOZZeVUpquI+DG1VdxU+J17Dfg+NS0d+jMCq+ickpP0foD0C5liDu/BDy",
+	"ffaXXZz5E25Qdky7JOjzpF4b32HqLo9bScU7KwtJRUcgCmeKlmu+gcJtoXDIBVhpoRjZm3cO6ZQHSPEf",
+	"uJWsZDtAio1fv1q9WvkpGQvaB2v2UxgqmeVuG2ZV8ZNtbcBdcnsIZlSYdaASvYyFhhh4+A+kd75y6tY/",
+	"rlazuXMEyBhz78d8x6Xizwr8ZN+sXv9jwGuDz1II0B745zjjXL+0MlXuEAsHSde2HPdpycNgpZL7Gsrs",
+	"TjBnLxe/OVN1THcoungUKpD71Yj9bGsUe2fWKLJrEARoJ7kiNv5SHHZwXFAzg4O/SI26xqesOzW3bm4A",
+	"X3OpQMyom9M+lKw62BP+sZqciNlv/KPhgoq96bAYks8V9GkUsRx5Cw6QWP35wLxCg6Gwkmnu7zks4V9s",
+	"eTlawXMjfVpSDol/ZkdScElJ3EZgdlnYEe6ZNEb3i6vi8NooJpeRc3U8TIP/R4FMppBz/FF8QZncRWN2",
+	"sdAU/Uwv44vjFSfxh5HHV+CgSDXnknkcAkvJpex7fe0A90MzkrrxsENhepUJ0/lbRLq89c+UZZWXViKz",
+	"3afYgoq7CX52pbkB9QWVieFtcK/YilPtS6J7n+LftDdZkH9XgrewWEyJIoGfCXI3PAizt/D4YAxK7Cjz",
+	"POoflAsfi/Nf7Hve/7mbfXroZ5j1e7GcVG8An12h442IT/AooA4Vq9nWOVtXlTINV1tDrn67ertix6fj",
+	"XwEAAP//ChgRgU0VAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -16,6 +16,7 @@ import (
 
 	"github.com/Sannrox/tradepipe/grpc/pb/login"
 	"github.com/Sannrox/tradepipe/grpc/pb/portfolio"
+	"github.com/Sannrox/tradepipe/grpc/pb/savingsplan"
 	"github.com/Sannrox/tradepipe/grpc/pb/timeline"
 	"github.com/Sannrox/tradepipe/tr"
 	"github.com/sirupsen/logrus"
@@ -86,21 +87,25 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 			InsecureSkipVerify: true,
 		})
 	}
-	client.SetCredentials(in.GetNumber(), in.GetPin())
+	client.SetCredentials(in.Number, in.Pin)
 
 	err := client.Login()
 	if err != nil {
 		return nil, err
 	}
 
-	s.client[client.GetProcessID()] = client
+	s.Lock.Lock()
+	s.client[client.ProcessID] = client
+	s.Lock.Unlock()
 
 	return &login.ProcessId{ProcessId: client.GetProcessID()}, nil
 }
 
 func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.TwoFAReturn, error) {
+	s.Lock.Lock()
 	client := s.client[in.ProcessId]
-	logrus.Debugf("%+v", client)
+	s.Lock.Unlock()
+
 	err := client.VerifyLogin(int(in.VerifyCode))
 	if err != nil {
 		return nil, err
@@ -110,7 +115,9 @@ func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.Tw
 }
 
 func (s *GRPCServer) Timeline(ctx context.Context, in *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
+	s.Lock.Lock()
 	client := s.client[in.ProcessId]
+	s.Lock.Unlock()
 	data := make(chan tr.Message)
 
 	err := client.NewWebSocketConnection(data)
@@ -138,7 +145,10 @@ func (s *GRPCServer) Timeline(ctx context.Context, in *timeline.RequestTimeline)
 }
 
 func (s *GRPCServer) TimelineDetails(ctx context.Context, in *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
+	s.Lock.Lock()
 	client := s.client[in.ProcessId]
+	s.Lock.Unlock()
+
 	data := make(chan tr.Message)
 
 	err := client.NewWebSocketConnection(data)
@@ -169,7 +179,9 @@ func (s *GRPCServer) TimelineDetails(ctx context.Context, in *timeline.RequestTi
 }
 
 func (s *GRPCServer) Positions(ctx context.Context, in *portfolio.RequestPositions) (*portfolio.ResponsePositions, error) {
+	s.Lock.Lock()
 	client := s.client[in.ProcessId]
+	s.Lock.Unlock()
 	data := make(chan tr.Message)
 
 	err := client.NewWebSocketConnection(data)
@@ -191,6 +203,35 @@ func (s *GRPCServer) Positions(ctx context.Context, in *portfolio.RequestPositio
 		ProcessId: in.ProcessId,
 		Postions:  bytes,
 	}, nil
+}
+
+func (s *GRPCServer) SavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error) {
+	s.Lock.Lock()
+	client := s.client[in.ProcessId]
+	s.Lock.Unlock()
+
+	data := make(chan tr.Message)
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		return nil, err
+	}
+	time.Sleep(10 * time.Second)
+	p := tr.NewSavingsPlan(client)
+	err = p.LoadSavingsplans(ctx, data)
+
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := p.GetSavingsPlansAsBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	return &savingsplan.ResponseSavingsplan{
+		ProcessId:    in.ProcessId,
+		Savingsplans: bytes,
+	}, nil
+
 }
 
 func (s *GRPCServer) Run(done chan struct{}) error {

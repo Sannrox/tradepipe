@@ -10,6 +10,7 @@ import (
 	context "context"
 	login "github.com/Sannrox/tradepipe/grpc/pb/login"
 	portfolio "github.com/Sannrox/tradepipe/grpc/pb/portfolio"
+	savingsplan "github.com/Sannrox/tradepipe/grpc/pb/savingsplan"
 	timeline "github.com/Sannrox/tradepipe/grpc/pb/timeline"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -32,6 +33,7 @@ type TradePipeClient interface {
 	Timeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
 	TimelineDetails(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
 	Positions(ctx context.Context, in *portfolio.RequestPositions, opts ...grpc.CallOption) (*portfolio.ResponsePositions, error)
+	SavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error)
 }
 
 type tradePipeClient struct {
@@ -96,6 +98,15 @@ func (c *tradePipeClient) Positions(ctx context.Context, in *portfolio.RequestPo
 	return out, nil
 }
 
+func (c *tradePipeClient) SavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error) {
+	out := new(savingsplan.ResponseSavingsplan)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/SavingsPlans", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TradePipeServer is the server API for TradePipe service.
 // All implementations must embed UnimplementedTradePipeServer
 // for forward compatibility
@@ -106,6 +117,7 @@ type TradePipeServer interface {
 	Timeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
 	TimelineDetails(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
 	Positions(context.Context, *portfolio.RequestPositions) (*portfolio.ResponsePositions, error)
+	SavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error)
 	mustEmbedUnimplementedTradePipeServer()
 }
 
@@ -130,6 +142,9 @@ func (UnimplementedTradePipeServer) TimelineDetails(context.Context, *timeline.R
 }
 func (UnimplementedTradePipeServer) Positions(context.Context, *portfolio.RequestPositions) (*portfolio.ResponsePositions, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Positions not implemented")
+}
+func (UnimplementedTradePipeServer) SavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SavingsPlans not implemented")
 }
 func (UnimplementedTradePipeServer) mustEmbedUnimplementedTradePipeServer() {}
 
@@ -252,6 +267,24 @@ func _TradePipe_Positions_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TradePipe_SavingsPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(savingsplan.RequestSavingsplan)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TradePipeServer).SavingsPlans(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.TradePipe/SavingsPlans",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TradePipeServer).SavingsPlans(ctx, req.(*savingsplan.RequestSavingsplan))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TradePipe_ServiceDesc is the grpc.ServiceDesc for TradePipe service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -282,6 +315,10 @@ var TradePipe_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Positions",
 			Handler:    _TradePipe_Positions_Handler,
+		},
+		{
+			MethodName: "SavingsPlans",
+			Handler:    _TradePipe_SavingsPlans_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -3,13 +3,13 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 
 
-ROOT_PATH=$(dirname "$0")/..
+ROOT_PATH=$(dirname "$0")/../..
 
-source "${ROOT_PATH}/scripts/lib/openapi.sh"
-source  "${ROOT_PATH}/scripts/lib/protoc.sh"
+source "${ROOT_PATH}/scripts/lib/init.sh"
 
 
 codegen(){

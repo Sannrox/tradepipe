@@ -92,7 +92,7 @@ func (s *RestServer) Login(ctx echo.Context) error {
 
 	err := client.Login()
 	if err != nil {
-		return err
+		return ctx.JSON(400, err.Error())
 	}
 
 	s.Lock.Lock()
@@ -110,7 +110,7 @@ func (s *RestServer) Verify(ctx echo.Context, processId string) error {
 
 	var newVerify api.Verify
 	if err := ctx.Bind(&newVerify); err != nil {
-		return err
+		return ctx.JSON(500, err.Error())
 	}
 
 	intVar, err := strconv.Atoi(newVerify.Token)
@@ -119,7 +119,7 @@ func (s *RestServer) Verify(ctx echo.Context, processId string) error {
 	}
 	err = client.VerifyLogin(intVar)
 	if err != nil {
-		return err
+		return ctx.JSON(400, err.Error())
 	}
 
 	return ctx.JSON(200, api.Verified{})
@@ -172,7 +172,6 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	err := client.NewWebSocketConnection(data)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
@@ -183,13 +182,11 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	err = tl.LoadTimeLine(context.Background(), data)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
 	err = tl.LoadTimeLineDetails(context.Background(), data)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
@@ -199,12 +196,10 @@ func (s *RestServer) TimelineDetails(ctx echo.Context, processId string, params 
 
 	b, err := json.Marshal(timelineDetails)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 	err = json.Unmarshal(b, &response.TimelineDetails)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 
@@ -220,7 +215,6 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 
 	err := client.NewWebSocketConnection(data)
 	if err != nil {
-		logrus.Debug(err)
 		return ctx.JSON(500, err)
 	}
 	postions := tr.NewPortfolio(client)
@@ -237,6 +231,38 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 
 	response := api.Positions{}
 	err = json.Unmarshal(positions, &response.Positions)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	return ctx.JSON(200, response)
+}
+
+func (s *RestServer) Savingsplans(ctx echo.Context, processId string) error {
+	s.Lock.Lock()
+	client := s.client[processId]
+	s.Lock.Unlock()
+
+	data := make(chan tr.Message)
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	sp := tr.NewSavingsPlan(client)
+
+	err = sp.LoadSavingsplans(context.Background(), data)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	savingsplans, err := sp.GetSavingsPlansAsBytes()
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	response := api.Savingsplans{}
+	err = json.Unmarshal(savingsplans, &response.Savingsplans)
 	if err != nil {
 		return ctx.JSON(500, err)
 	}

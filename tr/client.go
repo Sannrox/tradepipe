@@ -283,6 +283,7 @@ func (api *APIClient) NewWebSocketConnection(dataChan chan Message) error {
 		logrus.Debug("OnTextMessageReceived: ", message)
 
 		parseMessage := strings.SplitAfterN(message, " ", 3)
+		logrus.Debug(parseMessage)
 		subscriptionId, err := strconv.Atoi(strings.TrimSpace(parseMessage[0]))
 		if err != nil {
 			logrus.Error(err)
