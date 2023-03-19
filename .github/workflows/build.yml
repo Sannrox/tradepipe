@@ -1,0 +1,34 @@
+name: Build and Release
+
+
+on: 
+  push:
+    branches: []
+# on:
+#   create:
+#     tags:
+#       - 'v*'
+
+jobs:
+  build-binary:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Go binary
+        run: ./build/release-images.sh
+
+      # - name: Archive binary
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: myapp-binary
+      #     path: myapp
+
+      # - name: Push Docker container to registry
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: myapp:${{ github.ref }}
