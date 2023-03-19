@@ -2,6 +2,9 @@ name: Test and validate
 
 on:
   push:
+    branches-ignore:
+      - '*'
+  push:
     branches:
       - '*'
 
