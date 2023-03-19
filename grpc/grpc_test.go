@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var FakeTRServerPort string = "3443"
+var FakeTRServerPort string = "5443"
 
 func TestGrpcServer(t *testing.T) {
 	done := make(chan struct{})
@@ -61,6 +61,7 @@ func TestGrpcServer(t *testing.T) {
 	t.Run("Savingsplan test", SavingsPlans)
 
 	close(done)
+
 	if err := utils.WaitForPortToBeNotAttachedWithLimit(FakeTRServerPort, 10); err != nil {
 		t.Fatal(err)
 	}
