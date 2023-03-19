@@ -3,9 +3,11 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-set -x
 
-test=("test")
+
+ROOT_PATH=$(dirname "${BASH_SOURCE[0]}")/../..
+source "${ROOT_PATH}/scripts/lib/init.sh"
+
 CI=${CI:-}
 GO_TEST_TIMEOUT=${GO_TEST_TIMEOUT:-"-timeout=180s"}
 GO_TEST=${GO_TEST:-}
@@ -16,7 +18,7 @@ GO_OPTS=${GO_OPTS:-}
 GOHOSTARCH=${GOHOSTARCH:-}
 PKGS="./..."
 
-echo "${test[@]}"
+golang::setup_environment
 
 function try_ci_test_run(){
     if [ -n "${CI}" ]; then

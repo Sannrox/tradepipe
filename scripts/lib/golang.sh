@@ -31,6 +31,21 @@ BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
 
 
+function golang::setup_environment(){
+    export GOPATH="${GOPATH:-${HOME}/go}"
+
+    export GOCACHE="${GOCACHE:-${HOME}/.cache/go-build}"
+    export GOMODCACHE="${GOMODCACHE:-${HOME}/cache/go/mod}"
+
+    export PATH="${GOPATH}/bin:${PATH}"
+
+    GOROOT=$(go env GOROOT)
+
+    unset GOBIN
+
+}
+
+
 
 function golang::server_targets(){
     local targets=(
