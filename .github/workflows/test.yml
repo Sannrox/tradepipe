@@ -12,7 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+
       - name: Validate code
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
         run: make validate
 
   test:
