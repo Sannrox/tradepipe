@@ -22,9 +22,9 @@ golang::setup_environment
 
 function try_ci_test_run(){
     if [ -n "${CI}" ]; then
-        if [ -n "${GOTESTSUM}" ]; then
+        if [ -n "${GO_TESTSUM}" ]; then
             check_if_golangci_lint_is_in_path 
-            if [ -z "${GOTESTSUM}" ]; then
+            if [ -z "${GO_TESTSUM}" ]; then
                 echo "gotestsum not found in PATH"
                 install_gotestsum
             fi
