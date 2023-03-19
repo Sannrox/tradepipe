@@ -3,6 +3,9 @@
 # shellcheck disable=SC2034
 set -eu
 
+
+ROOT_PATH=$(dirname "${BASH_SOURCE[0]}")/../..
+source "${ROOT_PATH}/scripts/lib/init.sh"
 # GOLANG CI LINT
 GOLANGCI_LINT=${GOLANGCI_LINT:-}
 GOLANGCI_LINT_OPTS=${GOLANGCI_LINT_OPTS:-}
