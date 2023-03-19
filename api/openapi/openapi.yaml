@@ -1,6 +1,6 @@
 openapi: "3.0.0"
-info: 
-  version: 1.0.0 
+info:
+  version: 1.0.0
   title: tradepipe-api
   description: This Api is used to manage the tradepipe application
 servers:
@@ -12,19 +12,19 @@ paths:
       description: Status of the server
       operationId: alive
       responses:
-        '200':
-          description: Server available 
+        "200":
+          description: Server available
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Alive'
-        '401':
+                $ref: "#/components/schemas/Alive"
+        "401":
           description: Server forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Alive'
-        '500':
+                $ref: "#/components/schemas/Alive"
+        "500":
           $ref: "#/components/responses/InternalServerError"
   /login:
     post:
@@ -37,21 +37,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Login'
+              $ref: "#/components/schemas/Login"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcessId'
-        '401':
+                $ref: "#/components/schemas/ProcessId"
+        "401":
           description: Login failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcessId'
-        '500':
+                $ref: "#/components/schemas/ProcessId"
+        "500":
           $ref: "#/components/responses/InternalServerError"
   /{processId}/verify:
     post:
@@ -70,25 +70,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Verify'
+              $ref: "#/components/schemas/Verify"
       responses:
-        '200':
+        "200":
           description: Verify successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Verified'
-        '401':
+                $ref: "#/components/schemas/Verified"
+        "401":
           description: Verify failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Verified'
-        '500':
+                $ref: "#/components/schemas/Verified"
+        "500":
           $ref: "#/components/responses/InternalServerError"
   /{processId}/timeline:
-   get:
-      summary:  timeline 
+    get:
+      summary: timeline
       description: Loads the complete timeline
       operationId: timeline
       parameters:
@@ -98,28 +98,28 @@ paths:
             type: string
           required: true
         - name: since
-          in: query 
+          in: query
           schema:
             type: number
             format: double
       responses:
-        '200':
+        "200":
           description: Timeline successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Timeline'
-        '401':
+                $ref: "#/components/schemas/Timeline"
+        "401":
           description: Timeline failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Timeline'
-        '500':
+                $ref: "#/components/schemas/Timeline"
+        "500":
           $ref: "#/components/responses/InternalServerError"
   /{processId}/timelinedetails:
-   get:
-      summary:  timelinedetails
+    get:
+      summary: timelinedetails
       description: Loads the complete timeline details
       operationId: timelineDetails
       parameters:
@@ -129,28 +129,28 @@ paths:
             type: string
           required: true
         - name: since
-          in: query 
+          in: query
           schema:
             type: number
             format: double
       responses:
-        '200':
+        "200":
           description: Timeline successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TimelineDetails'
-        '401':
+                $ref: "#/components/schemas/TimelineDetails"
+        "401":
           description: Timeline failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TimelineDetails'
-        '500':
+                $ref: "#/components/schemas/TimelineDetails"
+        "500":
           $ref: "#/components/responses/InternalServerError"
   /{processId}/positions:
-   get:
-      summary:  positions
+    get:
+      summary: positions
       description: Loads your positions
       operationId: positions
       parameters:
@@ -160,25 +160,51 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Positions successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Positions'
-        '401':
+                $ref: "#/components/schemas/Positions"
+        "401":
           description: Positions failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Positions'
-        '500':
+                $ref: "#/components/schemas/Positions"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /{processId}/savingsplan:
+    get:
+      summary: savingsplans
+      description: Load you savingsplans
+      operationId: savingsplans
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Savingsplans successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Savingsplans"
+        "401":
+          description: Savingsplans failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Savingsplans"
+        "500":
           $ref: "#/components/responses/InternalServerError"
 components:
   schemas:
     Login:
       required:
-        - number 
+        - number
         - pin
       type: object
       properties:
@@ -190,7 +216,7 @@ components:
       type: string
     Verify:
       required:
-        - token 
+        - token
       type: object
       properties:
         token:
@@ -227,29 +253,34 @@ components:
           type: string
         positions:
           type: array
+    Savingsplans:
+      required:
+        - savingsplans
+      type: object
+      properties:
+        message:
+          type: string
+        savingsplans:
+          type: array
     Alive:
       type: object
       properties:
-        status: 
+        status:
           type: string
-        serverTime: 
+        serverTime:
           type: integer
           format: int64
     ErrorModel:
-      type: object 
+      type: object
       required:
         - message
       properties:
         message:
-          type: string 
-
+          type: string
   responses:
     InternalServerError:
       description: Internal Server Error
       content:
         application/json:
-          schema: 
-           $ref: "#/components/schemas/ErrorModel"
-  
-
-
+          schema:
+            $ref: "#/components/schemas/ErrorModel"

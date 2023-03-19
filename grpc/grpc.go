@@ -87,7 +87,7 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 			InsecureSkipVerify: true,
 		})
 	}
-	client.SetCredentials(in.GetNumber(), in.GetPin())
+	client.SetCredentials(in.Number, in.Pin)
 
 	err := client.Login()
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 	}
 
 	s.Lock.Lock()
-	s.client[client.GetProcessID()] = client
+	s.client[client.ProcessID] = client
 	s.Lock.Unlock()
 
 	return &login.ProcessId{ProcessId: client.GetProcessID()}, nil
@@ -106,7 +106,6 @@ func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.Tw
 	client := s.client[in.ProcessId]
 	s.Lock.Unlock()
 
-	logrus.Debugf("%+v", client)
 	err := client.VerifyLogin(int(in.VerifyCode))
 	if err != nil {
 		return nil, err

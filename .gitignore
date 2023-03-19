@@ -6,3 +6,4 @@ tradepipe.txt
 */**/key.pem
 _output
 .cache/
+*/**/fakeserver.log

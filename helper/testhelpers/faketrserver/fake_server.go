@@ -82,12 +82,12 @@ func (s *FakeServer) GenerateData() {
 	logrus.Debug(s.Timeline)
 }
 
-func (s *FakeServer) Run(done chan struct{}, port string, cert, key string) {
+func (s *FakeServer) Run(done chan struct{}, port string) {
 	logger.Enable()
+	logger.SetLogFile("fakeserver.log")
 	http.HandleFunc("/", s.WebSocket)
 	http.HandleFunc("/api/v1/auth/web/login", s.Login)
 	http.HandleFunc("/api/v1/auth/web/login/", s.Verify)
-	logrus.Info("Fake Server started")
 
 	server := &http.Server{
 		Addr: ":" + port,
@@ -95,8 +95,12 @@ func (s *FakeServer) Run(done chan struct{}, port string, cert, key string) {
 			MinVersion: tls.VersionTLS12,
 		},
 	}
+	if err := s.CreateCertAndKeyForFakeServer(); err != nil {
+		logrus.Fatal(err)
+	}
 
 	go func() {
+		logrus.Info("Fake Server starting on port " + port)
 		err := server.ListenAndServeTLS(s.CertFile, s.KeyFile)
 		if err != nil && err != http.ErrServerClosed {
 			logrus.Error(err)
@@ -112,13 +116,17 @@ func (s *FakeServer) Run(done chan struct{}, port string, cert, key string) {
 	if err := server.Shutdown(ctx); err != nil {
 		logrus.Error(err)
 	}
+	s.RemoveCertAndKeyForFakeServer()
+	if err := os.Remove("fakeserver.log"); err != nil {
+		logrus.Error(err)
+	}
 	logrus.Info("Fake Server stopped")
 }
 
-func (s *FakeServer) CreateCertAndKeyForFakeServer() {
+func (s *FakeServer) CreateCertAndKeyForFakeServer() error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Create a self-signed certificate
@@ -137,7 +145,7 @@ func (s *FakeServer) CreateCertAndKeyForFakeServer() {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Write the private key and certificate to files
@@ -146,11 +154,22 @@ func (s *FakeServer) CreateCertAndKeyForFakeServer() {
 
 	// Save the files to disk
 	if err := os.WriteFile(s.CertFile, certOut, 0644); err != nil {
-		panic(err)
+		return err
 	}
 	if err := os.WriteFile(s.KeyFile, keyOut, 0600); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
+}
+
+func (s *FakeServer) RemoveCertAndKeyForFakeServer() error {
+	if err := os.Remove(s.CertFile); err != nil {
+		return err
+	}
+	if err := os.Remove(s.KeyFile); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *FakeServer) Login(w http.ResponseWriter, r *http.Request) {

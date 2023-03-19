@@ -238,6 +238,38 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 	return ctx.JSON(200, response)
 }
 
+func (s *RestServer) Savingsplans(ctx echo.Context, processId string) error {
+	s.Lock.Lock()
+	client := s.client[processId]
+	s.Lock.Unlock()
+
+	data := make(chan tr.Message)
+	err := client.NewWebSocketConnection(data)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	sp := tr.NewSavingsPlan(client)
+
+	err = sp.LoadSavingsplans(context.Background(), data)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	savingsplans, err := sp.GetSavingsPlansAsBytes()
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	response := api.Savingsplans{}
+	err = json.Unmarshal(savingsplans, &response.Savingsplans)
+	if err != nil {
+		return ctx.JSON(500, err)
+	}
+
+	return ctx.JSON(200, response)
+}
+
 func (s *RestServer) Run(done chan struct{}, port string) error {
 	swagger, err := api.GetSwagger()
 	if err != nil {

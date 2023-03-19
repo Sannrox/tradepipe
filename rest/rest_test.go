@@ -5,21 +5,23 @@ import (
 	"crypto/tls"
 	"net/http"
 	"testing"
-	"time"
 
 	fakeClient "github.com/Sannrox/tradepipe/helper/testhelpers/fakerestclient"
 	fake "github.com/Sannrox/tradepipe/helper/testhelpers/faketrserver"
+	"github.com/Sannrox/tradepipe/helper/testhelpers/utils"
 	"github.com/Sannrox/tradepipe/rest/api"
 )
 
-var FakeTRServerPort string = "443"
-var FakeHTTPServer string = "8080"
+var FakeTRServerPort string = "8443"
+var FakeHTTPServer string = "8088"
 
 func TestRestServer(t *testing.T) {
 	done := make(chan struct{})
 	s := NewRestServer()
-	s.SetBaseURL("https://localhost:443")
-	s.SetWsURL("wss://localhost:443")
+	// Set the server to use the fake server
+	s.SetBaseURL("https://localhost:" + FakeTRServerPort)
+	s.SetWsURL("wss://localhost:" + FakeTRServerPort)
+
 	setClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -31,10 +33,17 @@ func TestRestServer(t *testing.T) {
 	FakeServer := fake.NewFakeServer("+49111111111", "1111", "1234567890", "1234")
 	FakeServer.GenerateData()
 
-	go FakeServer.Run(done, FakeTRServerPort, "../test/ssl/cert.pem", "../test/ssl/key.pem")
+	go FakeServer.Run(done, FakeTRServerPort)
 	go s.Run(done, FakeHTTPServer)
 
-	time.Sleep(10 * time.Second)
+	if err := utils.WaitForRestServerToBeUp("https://localhost:"+FakeTRServerPort, 10); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := utils.WaitForRestServerToBeUp("http://localhost:"+FakeHTTPServer, 10); err != nil {
+		t.Fatal(err)
+	}
+
 	t.Run("Login test", Login)
 	t.Run("Verify test", Verify)
 
@@ -44,7 +53,13 @@ func TestRestServer(t *testing.T) {
 
 	t.Run("Portfolio test", Portfolio)
 	close(done)
-	time.Sleep(10 * time.Second)
+
+	if err := utils.WaitForPortToBeNotAttachedWithLimit(FakeTRServerPort, 10); err != nil {
+		t.Fatal(err)
+	}
+	if err := utils.WaitForPortToBeNotAttachedWithLimit(FakeHTTPServer, 10); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func Login(t *testing.T) {
