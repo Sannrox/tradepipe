@@ -20,11 +20,29 @@ jobs:
       - name: Build Go binary
         run: ./build/release-images.sh
 
-      # - name: Archive binary
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: myapp-binary
-      #     path: myapp
+      - name: Archive tradegrpc linux amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradegrpc-linux-amd64
+          path: _output/bin/linux/amd64/tradegrpc
+
+      - name: Archive tradehttp linux amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradehttp-linux-amd64
+          path: _output/bin/linux/amd64/tradehttp
+
+      - name: Archive tradegrpc linux arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradegrpc-linux-arm64
+          path: _output/bin/linux/arm64/tradegrpc
+
+      - name: Archive tradehttp linux arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradehttp-linux-arm64
+          path: _output/bin/linux/arm64/tradehttp
 
       # - name: Push Docker container to registry
       #   uses: docker/build-push-action@v2
