@@ -12,7 +12,7 @@ source "${ROOT_PATH}/scripts/lib/init.sh"
 # GOLANG CI LINT
 GOLANGCI_LINT=${GOLANGCI_LINT:-}
 GOLANGCI_LINT_OPTS=${GOLANGCI_LINT_OPTS:-}
-GOLANGCI_LINT_VERSION="1.39.0"
+GOLANGCI_LINT_VERSION="v1.52.0"
 
 golang::setup_environment
 
@@ -25,7 +25,7 @@ check_if_golangci_lint_is_in_path(){
 
 check_golangci_lint_version(){
     if [ "$("${GOLANGCI_LINT}" version | grep -o "${GOLANGCI_LINT_VERSION}")" != "${GOLANGCI_LINT_VERSION}" ]; then
-        print "Install new version of golangci-lint"
+        echo "Install new version of golangci-lint"
         install_golangci_lint 
     fi
 }
@@ -36,7 +36,7 @@ run_golangci_lint(){
 
 install_golangci_lint(){
 	mkdir -p "${GOPATH}/bin"
-	curl -sfL "https://raw.githubusercontent.com/golangci/golangci-lint/v${GOLANGCI_LINT_VERSION}/install.sh" \
+	curl -sfL "https://raw.githubusercontent.com/golangci/golangci-lint/${GOLANGCI_LINT_VERSION}/install.sh" \
 		| sed -e '/install -d/d' \
 		| sh -s -- -b "${GOPATH}/bin" "${GOLANGCI_LINT_VERSION}"
 }
