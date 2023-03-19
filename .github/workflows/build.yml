@@ -10,7 +10,7 @@ on:
 #       - 'v*'
 
 jobs:
-  build-binary:
+  build:
     runs-on: ubuntu-latest
 
     steps:
