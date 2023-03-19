@@ -28,7 +28,10 @@ jobs:
         with:
           go-version: '>=1.17.0' 
       - name: Run tests
-        run: make test
+        run: | 
+          make test
+          ls 
+          ls _output/test-results/
       - name: Upload test reports 
         uses: actions/upload-artifact@v2
         with:
