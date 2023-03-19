@@ -40,7 +40,7 @@ function check_if_gotestsum_is_in_path(){
 }
 
 function install_gotestsum() {
-	go get gotest.tools/gotestsum
+    go install gotest.tools/gotestsum@latest
 }
 
 
@@ -76,7 +76,7 @@ function create_test_dir(){
 function run_tests(){
     check_if_race
     if [ -n "${GO_TEST}" ]; then
-       GO_ENABLED=1  ${GO_TEST} ${GO_TEST_FLAGS} ${GO_TEST_TIMEOUT} ${GO_OPTS} ${PKGS}
+       CGO_ENABLED=1  ${GO_TEST} ${GO_TEST_FLAGS} ${GO_TEST_TIMEOUT} ${GO_OPTS} ${PKGS}
     fi
 }
 
