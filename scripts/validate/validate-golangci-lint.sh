@@ -14,6 +14,7 @@ GOLANGCI_LINT=${GOLANGCI_LINT:-}
 GOLANGCI_LINT_OPTS=${GOLANGCI_LINT_OPTS:-}
 GOLANGCI_LINT_VERSION="1.39.0"
 
+golang::setup_environment
 
 check_if_golangci_lint_is_in_path(){
     if type "golangci-lint" > /dev/null; then
