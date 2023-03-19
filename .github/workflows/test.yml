@@ -2,8 +2,8 @@ name: Test and validate
 
 on:
   push:
-  branches:
-    - '*'
+    branches:
+      - '*'
 
 jobs:
   validate:
