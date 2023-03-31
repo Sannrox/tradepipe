@@ -21,6 +21,7 @@ type TradeGrpcOptions struct {
 	Debug   bool
 	LogFile string
 	Done    chan struct{}
+	DB      string
 }
 
 func NewTadeGrpcCmd() *cobra.Command {
@@ -40,12 +41,14 @@ func NewTadeGrpcCmd() *cobra.Command {
 					return err
 				}
 			}
-			server := grpc.NewGRPCServer()
+
+			server := grpc.NewGRPCServer(opts.DB)
 			return server.Run(opts.Done)
 		},
 	}
 	cmd.Flags().BoolVarP(&opts.Debug, "debug", "d", false, "Enable debug logging")
-	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "", "Log file to write to")
+	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "tradegrpc.log", "Log file to write to")
+	cmd.Flags().StringVarP(&opts.DB, "db", "b", "localhost", "Database host")
 
 	return cmd
 }

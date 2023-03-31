@@ -13,6 +13,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/Sannrox/tradepipe/grpc/pb"
+	"github.com/Sannrox/tradepipe/logger"
+	"github.com/Sannrox/tradepipe/scylla/tr_storage"
+	"github.com/Sannrox/tradepipe/scylla/users"
 
 	"github.com/Sannrox/tradepipe/grpc/pb/login"
 	"github.com/Sannrox/tradepipe/grpc/pb/portfolio"
@@ -23,6 +26,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+const (
+	user_keyspace        = "user"
+	portfolio_keyspace   = "portfolio"
+	savingsPlan_keyspace = "savingsplan"
+)
+
 type GRPCServer struct {
 	*pb.UnimplementedTradePipeServer
 	client         map[string]*tr.APIClient
@@ -31,15 +40,27 @@ type GRPCServer struct {
 	wsURL          string
 	overWriteTls   bool
 	baseHTTPClient *http.Client
+	Keyspaces
+}
+
+type Keyspaces struct {
+	User         *users.User
+	Portfolio    *tr_storage.Portfolios
+	Savingsplans *tr_storage.SavingsPlans
 }
 
 var port = flag.Int("port", 50051, "The server port")
 
-func NewGRPCServer() *GRPCServer {
+func NewGRPCServer(dbhost string) *GRPCServer {
 	return &GRPCServer{client: make(map[string]*tr.APIClient),
 		baseURL:      "",
 		wsURL:        "",
 		overWriteTls: false,
+		Keyspaces: Keyspaces{
+			User:         users.NewUserKeyspace(dbhost, user_keyspace),
+			Portfolio:    tr_storage.NewPortfolioKeyspace(dbhost, portfolio_keyspace),
+			Savingsplans: tr_storage.NewSavingsPlanKeyspace(dbhost, savingsPlan_keyspace),
+		},
 	}
 }
 
@@ -69,6 +90,7 @@ func (s *GRPCServer) Alive(ctx context.Context, in *emptypb.Empty) (*pb.Alive, e
 }
 
 func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.ProcessId, error) {
+	logrus.Debug("Run Login for ", in.Number, "with pin", in.Pin)
 	client := tr.NewAPIClient()
 
 	if s.baseHTTPClient != nil {
@@ -91,7 +113,7 @@ func (s *GRPCServer) Login(ctx context.Context, in *login.Credentials) (*login.P
 
 	err := client.Login()
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Login failed")
 	}
 
 	s.Lock.Lock()
@@ -109,6 +131,16 @@ func (s *GRPCServer) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.Tw
 	err := client.VerifyLogin(int(in.VerifyCode))
 	if err != nil {
 		return nil, err
+	}
+
+	if s.User.CheckIfUserExists(client.Creds.Number) {
+		currentPin := s.User.Users.Pin(client.Creds.Number)
+		if *currentPin != client.Creds.Pin {
+			logrus.Debug("Updating pin")
+			s.User.UpdateUser(client.Creds.Number, client.Creds.Pin)
+		}
+	} else {
+		s.User.AddUser(client.Creds.Number, client.Creds.Pin)
 	}
 
 	return &login.TwoFAReturn{}, nil
@@ -184,21 +216,48 @@ func (s *GRPCServer) Positions(ctx context.Context, in *portfolio.RequestPositio
 	s.Lock.Unlock()
 	data := make(chan tr.Message)
 
-	err := client.NewWebSocketConnection(data)
+	user, err := s.User.ReadUser(client.Creds.Number)
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Error reading user from database")
+	}
+
+	err = s.Portfolio.CreateNewPortfolioTable(user.ID.String())
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error creating new portfolio table")
+	}
+
+	positions, err := s.Portfolio.GetAllPositions(user.ID.String())
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error getting all positions from database")
+	}
+
+	err = client.NewWebSocketConnection(data)
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error creating new websocket connection")
 	}
 
 	time.Sleep(10 * time.Second)
-	p := tr.NewPortfolio(client)
+	p := tr.NewPortfolioLoader(client)
 	err = p.LoadPortfolio(ctx, data)
 	if err != nil {
+		logrus.Error(err)
 		return nil, err
 	}
 	bytes, err := p.GetPositionsAsBytes()
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Error getting positions as bytes")
 	}
+
+	newPositions := p.GetPositions()
+	err = s.Portfolio.AddPositions(user.ID.String(), &newPositions)
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error adding positions to database")
+	}
+
+	for _, pos := range newPositions {
+		positions = append(positions, &pos)
+	}
+
 	return &portfolio.ResponsePositions{
 		ProcessId: in.ProcessId,
 		Postions:  bytes,
@@ -211,20 +270,45 @@ func (s *GRPCServer) SavingsPlans(ctx context.Context, in *savingsplan.RequestSa
 	s.Lock.Unlock()
 
 	data := make(chan tr.Message)
-	err := client.NewWebSocketConnection(data)
+
+	user, err := s.User.ReadUser(client.Creds.Number)
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Error reading user from database")
+	}
+
+	err = s.Savingsplans.CreateNewSavingsPlanTable(user.ID.String())
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error creating new savingsplan table")
+	}
+
+	savingsplans, err := s.Savingsplans.GetAllSavingsPlans(user.ID.String())
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error getting all savingsplans from database")
+	}
+
+	err = client.NewWebSocketConnection(data)
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error creating new websocket connection")
 	}
 	time.Sleep(10 * time.Second)
 	p := tr.NewSavingsPlan(client)
 	err = p.LoadSavingsplans(ctx, data)
-
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Error loading savingsplans")
 	}
 	bytes, err := p.GetSavingsPlansAsBytes()
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Error getting savingsplans as bytes")
+	}
+
+	newSavingsplans := p.GetSavingsPlans()
+	err = s.Savingsplans.AddSavingsPlans(user.ID.String(), &newSavingsplans)
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Error adding savingsplans to database")
+	}
+
+	for _, pos := range newSavingsplans {
+		savingsplans = append(savingsplans, &pos)
 	}
 
 	return &savingsplan.ResponseSavingsplan{
@@ -239,7 +323,9 @@ func (s *GRPCServer) Run(done chan struct{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
+
 	server := grpc.NewServer()
+	s.User.CreateNewUserTable()
 	logrus.Infof("server listening at %v", lis.Addr())
 	pb.RegisterTradePipeServer(server, s)
 	var errChan chan error

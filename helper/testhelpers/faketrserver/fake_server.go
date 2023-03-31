@@ -82,7 +82,7 @@ func (s *FakeServer) GenerateData() {
 	logrus.Debug(s.Timeline)
 }
 
-func (s *FakeServer) Run(done chan struct{}, port string) {
+func (s *FakeServer) Run(done chan struct{}, port int) {
 	logger.Enable()
 	logger.SetLogFile("fakeserver.log")
 	http.HandleFunc("/", s.WebSocket)
@@ -90,7 +90,7 @@ func (s *FakeServer) Run(done chan struct{}, port string) {
 	http.HandleFunc("/api/v1/auth/web/login/", s.Verify)
 
 	server := &http.Server{
-		Addr: ":" + port,
+		Addr: fmt.Sprintf(":%d", port),
 		TLSConfig: &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		},
@@ -100,7 +100,7 @@ func (s *FakeServer) Run(done chan struct{}, port string) {
 	}
 
 	go func() {
-		logrus.Info("Fake Server starting on port " + port)
+		logrus.Infof("Fake Server starting on port %d", port)
 		err := server.ListenAndServeTLS(s.CertFile, s.KeyFile)
 		if err != nil && err != http.ErrServerClosed {
 			logrus.Error(err)

@@ -217,7 +217,7 @@ func (s *RestServer) Positions(ctx echo.Context, processId string) error {
 	if err != nil {
 		return ctx.JSON(500, err)
 	}
-	postions := tr.NewPortfolio(client)
+	postions := tr.NewPortfolioLoader(client)
 
 	err = postions.LoadPortfolio(context.Background(), data)
 	if err != nil {

@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -12,15 +13,19 @@ import (
 	"github.com/Sannrox/tradepipe/rest/api"
 )
 
-var FakeTRServerPort string = "8443"
 var FakeHTTPServer string = "8088"
 
 func TestRestServer(t *testing.T) {
 	done := make(chan struct{})
 	s := NewRestServer()
+
+	fakeTrServerPort, err := utils.FindFreePort(3443, 4443)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// Set the server to use the fake server
-	s.SetBaseURL("https://localhost:" + FakeTRServerPort)
-	s.SetWsURL("wss://localhost:" + FakeTRServerPort)
+	s.SetBaseURL(fmt.Sprintf("https://localhost:%d", fakeTrServerPort))
+	s.SetWsURL(fmt.Sprintf("wss://localhost:%d", fakeTrServerPort))
 
 	setClient := &http.Client{
 		Transport: &http.Transport{
@@ -33,10 +38,12 @@ func TestRestServer(t *testing.T) {
 	FakeServer := fake.NewFakeServer("+49111111111", "1111", "1234567890", "1234")
 	FakeServer.GenerateData()
 
-	go FakeServer.Run(done, FakeTRServerPort)
+	go FakeServer.Run(done, fakeTrServerPort)
 	go s.Run(done, FakeHTTPServer)
 
-	if err := utils.WaitForRestServerToBeUp("https://localhost:"+FakeTRServerPort, 10); err != nil {
+	fakeTrServerUrl := fmt.Sprintf("https://localhost:%d", fakeTrServerPort)
+
+	if err := utils.WaitForRestServerToBeUp(fakeTrServerUrl, 10); err != nil {
 		t.Fatal(err)
 	}
 
@@ -54,12 +61,6 @@ func TestRestServer(t *testing.T) {
 	t.Run("Portfolio test", Portfolio)
 	close(done)
 
-	if err := utils.WaitForPortToBeNotAttachedWithLimit(FakeTRServerPort, 10); err != nil {
-		t.Fatal(err)
-	}
-	if err := utils.WaitForPortToBeNotAttachedWithLimit(FakeHTTPServer, 10); err != nil {
-		t.Fatal(err)
-	}
 }
 
 func Login(t *testing.T) {

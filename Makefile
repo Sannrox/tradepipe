@@ -6,7 +6,6 @@ SHELL := /usr/bin/env bash -o errexit -o pipefail -o nounset
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-.EXPORT_ALL_VARIABLES:
 
 
 .PHONY: test lint deps format build coverage coverhtml grpc rest

@@ -114,7 +114,7 @@ func (p *FakePortfolio) GenerateFakePostions(sets int) []Position {
 			InstrumentID:          random.GenerateRandomeISIN(),
 			NetSize:               rand.Float64(),
 			NetValue:              rand.Float64(),
-			RealisedProfit:        rand.Int(),
+			RealisedProfit:        rand.Intn(1000000),
 			UnrealisedAverageCost: rand.Float64(),
 		})
 	}
