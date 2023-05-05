@@ -16,14 +16,18 @@ type Scylla struct {
 	Keyspace     string
 }
 
-type Database interface {
-	Connect() error
-	CreateTable() error
-	Close() error
-	Insert(model interface{}) error
-	GetByID(id gocql.UUID, model interface{}) error
-	Update(id gocql.UUID, model interface{}) error
-	Delete(id gocql.UUID, model interface{}) error
+type KeyspaceConnection interface {
+	All(string) ([]map[string]interface{}, error)
+	GetById(string, string) (map[string]interface{}, error)
+	InsertOne(string, map[string]interface{}) error
+	DeleteOne(string, string) error
+}
+
+func NewScyllaKeySpaceConnection(contactPoint string, keyspace string) (*Scylla, error) {
+	if err := CreateKeyspace(contactPoint, keyspace); err != nil {
+		return nil, err
+	}
+	return NewScyllaDbWithPool(contactPoint, keyspace, 10)
 }
 
 func NewScyllaDbWithPool(contactPoint string, keyspace string, poolSize int) (*Scylla, error) {
@@ -71,6 +75,11 @@ func (s *Scylla) CreateTable(tablename, schema string) error {
 	return s.Session.Query(query).Exec()
 }
 
+func (s *Scylla) CreateTablePath(tableName string, prefix string) string {
+
+	return s.Keyspace + "." + strings.TrimSpace(prefix) + strings.ReplaceAll(tableName, "-", "_")
+}
+
 func (s *Scylla) TableExists(keyspace, table string) bool {
 	var tableName string
 	err := s.Session.Query("SELECT table_name FROM system_schema.tables WHERE keyspace_name = ? AND table_name = ?", keyspace, table).Scan(&tableName)
@@ -84,10 +93,14 @@ func (s *Scylla) Close() {
 func (s *Scylla) Insert(tableName string, model interface{}) error {
 	fields := getFields(model)
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tableName, strings.Join(fields, ", "), getValuesPlaceholder(model))
-	logrus.Debug("QUERY:", query, " Len of Placeholders:", len(fields), " VALUES: ", getValues(model), getValuesPlaceholder(model))
+	logrus.Debug("QUERY:", query, " Len of Placeholders:", len(fields), " VALUES: ", getValues(model), "Len of Values", len(getValues(model)))
 	return s.Session.Query(query, getValues(model)...).Exec()
 }
 
+func (s *Scylla) Query(query string, model ...interface{}) error {
+	logrus.Info(s.Session.Query(query, model...).String())
+	return s.Session.Query(query, model...).Exec()
+}
 func getFields(model interface{}) []string {
 	t := reflect.TypeOf(model)
 
@@ -108,13 +121,35 @@ func getFields(model interface{}) []string {
 	return fields
 }
 
+// func getFields(model interface{}) []string {
+// 	t := reflect.TypeOf(model)
+
+// 	if t.Kind() == reflect.Ptr {
+// 		t = t.Elem()
+// 	}
+
+// 	var fields []string
+// 	for i := 0; i < t.NumField(); i++ {
+// 		field := t.Field(i)
+// 		if field.Name == "ID" {
+// 			fields = append(fields, "id")
+// 		} else if field.Type.Kind() == reflect.Struct {
+// 			// recursively call getFields on inner struct type
+// 			innerFields := getFields(reflect.New(field.Type).Interface())
+// 			fields = append(fields, innerFields...)
+// 		} else {
+// 			fields = append(fields, strings.ToLower(field.Name))
+// 		}
+// 	}
+
+// 	return fields
+// }
+
 func getValuesPlaceholder(model interface{}) string {
 	v := reflect.ValueOf(model)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	logrus.Info(v.Kind())
-	logrus.Info(v)
 
 	var placeholders []string
 	for i := 0; i < v.NumField(); i++ {
@@ -179,7 +214,7 @@ func (s *Scylla) Update(tableName string, id gocql.UUID, model interface{}) erro
 	return queryObj.Exec()
 }
 
-func (s *Scylla) Delete(tableName string, id gocql.UUID, model interface{}) error {
+func (s *Scylla) Delete(tableName string, id string) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = ?", tableName)
 	logrus.Debug(query)
 	return s.Session.Query(query, id).Exec()

@@ -122,12 +122,15 @@ func (t *FakeRawTimeline) GenerateTimeline(sets int) {
 				Attributes  []interface{} `json:"attributes"`
 				Month       string        `json:"month"`
 			}{
-				ID:          random.GenerateRandomString(10),
-				Timestamp:   int64(j),
-				Icon:        random.GenerateRandomString(10),
-				Title:       random.GenerateRandomString(10),
-				Body:        random.GenerateRandomString(10),
-				Action:      Action{},
+				ID:        random.GenerateRandomString(10),
+				Timestamp: int64(j),
+				Icon:      random.GenerateRandomString(10),
+				Title:     random.GenerateRandomString(10),
+				Body:      random.GenerateRandomString(10),
+				Action: Action{
+					Type:    "type",
+					Payload: "payload",
+				},
 				ActionLabel: "actionLabel",
 				Attributes:  []interface{}{},
 				Month:       fmt.Sprintf("%d-%d", random.GenerateRandomYear(), random.GenerateRandomMonth()),

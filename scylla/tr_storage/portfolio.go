@@ -1,8 +1,6 @@
 package tr_storage
 
 import (
-	"strings"
-
 	"github.com/Sannrox/tradepipe/scylla"
 	"github.com/Sannrox/tradepipe/tr"
 	"github.com/sirupsen/logrus"
@@ -10,31 +8,22 @@ import (
 
 type Portfolios struct {
 	scylla.Scylla
-	keyspace string
 }
 
-func NewPortfolioKeyspace(contactPoint string, keyspace string) *Portfolios {
-	err := scylla.CreateKeyspace(contactPoint, keyspace)
-	if err != nil {
-		panic(err)
-	}
-	s, err := scylla.NewScyllaDbWithPool(contactPoint, keyspace, 10)
+func NewPortfolioKeyspace(contactPoint string) *Portfolios {
+	var keyspace = "portfolio"
+	s, err := scylla.NewScyllaKeySpaceConnection(contactPoint, keyspace)
 	if err != nil {
 		panic(err)
 	}
 
 	return &Portfolios{
-		Scylla:   *s,
-		keyspace: keyspace,
+		Scylla: *s,
 	}
 }
 
-func (p *Portfolios) CreateTableName(tableName string) string {
-	return p.keyspace + "." + "user" + strings.ReplaceAll(tableName, "-", "_")
-}
-
 func (p *Portfolios) CreateNewPortfolioTable(tableName string) error {
-	tableName = p.CreateTableName(tableName)
+	tableName = p.CreateTablePath(tableName, "user")
 	schema := "instrumentId text, " +
 		"netSize double, " +
 		"netValue double, " +
@@ -42,7 +31,7 @@ func (p *Portfolios) CreateNewPortfolioTable(tableName string) error {
 		"unrealisedAverageCost double, " +
 		"PRIMARY KEY (instrumentId)"
 
-	if !p.TableExists(p.keyspace, tableName) {
+	if !p.TableExists(p.Keyspace, tableName) {
 		if err := p.CreateTable(tableName, schema); err != nil {
 			return err
 		}
@@ -52,10 +41,10 @@ func (p *Portfolios) CreateNewPortfolioTable(tableName string) error {
 }
 
 func (p *Portfolios) GetAllPositions(tableName string) ([]*tr.Position, error) {
-	tableName = p.CreateTableName(tableName)
+	tablePath := p.CreateTablePath(tableName, "user")
 	positions := []*tr.Position{}
 
-	iter := p.Session.Query("SELECT * FROM " + tableName).Iter()
+	iter := p.Session.Query("SELECT * FROM " + tablePath).Iter()
 	m := make(map[string]interface{})
 	for iter.MapScan(m) {
 		logrus.Debug(m)
@@ -84,13 +73,13 @@ func (p *Portfolios) AddPositions(tableName string, positions *[]tr.Position) er
 }
 
 func (p *Portfolios) AddPosition(tableName string, position *tr.Position) error {
-	tableName = p.CreateTableName(tableName)
-	return p.Insert(tableName, position)
+	tablePath := p.CreateTablePath(tableName, "user")
+	return p.Insert(tablePath, position)
 }
 
 func (p *Portfolios) UpdatePosition(tableName string, position *tr.Position) error {
-	tableName = p.CreateTableName(tableName)
-	return p.Session.Query("UPDATE "+tableName+" SET net_size = ?, net_value = ?, realised_profit = ?, unrealised_average_cost = ? WHERE instrument_id = ?",
+	tablePath := p.CreateTablePath(tableName, "user")
+	return p.Session.Query("UPDATE "+tablePath+" SET net_size = ?, net_value = ?, realised_profit = ?, unrealised_average_cost = ? WHERE instrument_id = ?",
 		position.NetSize,
 		position.NetValue,
 		position.RealisedProfit,
@@ -100,15 +89,15 @@ func (p *Portfolios) UpdatePosition(tableName string, position *tr.Position) err
 }
 
 func (p *Portfolios) DeletePosition(tableName string, position *tr.Position) error {
-	tableName = p.CreateTableName(tableName)
-	return p.Session.Query("DELETE FROM "+p.keyspace+"."+tableName+" WHERE instrument_id = ?", position.InstrumentID).Exec()
+	tablePath := p.CreateTablePath(tableName, "user")
+	return p.Session.Query("DELETE FROM "+tablePath+" WHERE instrument_id = ?", position.InstrumentID).Exec()
 }
 
 func (p *Portfolios) GetPosition(tableName string, instrumentID string) (*tr.Position, error) {
-	tableName = p.CreateTableName(tableName)
+	tablePath := p.CreateTablePath(tableName, "user")
 	var position tr.Position
 
-	err := p.Session.Query("SELECT * FROM "+p.keyspace+"."+tableName+" WHERE instrument_id = ?", instrumentID).Scan(
+	err := p.Session.Query("SELECT * FROM "+tablePath+" WHERE instrument_id = ?", instrumentID).Scan(
 		&position.InstrumentID,
 		&position.NetSize,
 		&position.NetValue,

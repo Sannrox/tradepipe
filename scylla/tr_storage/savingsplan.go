@@ -1,40 +1,28 @@
 package tr_storage
 
 import (
-	"strings"
-
 	"github.com/Sannrox/tradepipe/scylla"
 	"github.com/Sannrox/tradepipe/tr"
-	"github.com/sirupsen/logrus"
 )
 
 type SavingsPlans struct {
 	scylla.Scylla
-	keyspace string
 }
 
-func NewSavingsPlanKeyspace(contactPoint string, keyspace string) *SavingsPlans {
-	err := scylla.CreateKeyspace(contactPoint, keyspace)
-	if err != nil {
-		panic(err)
-	}
-	s, err := scylla.NewScyllaDbWithPool(contactPoint, keyspace, 10)
+func NewSavingsPlanKeyspace(contactPoint string) *SavingsPlans {
+	var keyspace = "savingsplans"
+	s, err := scylla.NewScyllaKeySpaceConnection(contactPoint, keyspace)
 	if err != nil {
 		panic(err)
 	}
 
 	return &SavingsPlans{
-		Scylla:   *s,
-		keyspace: keyspace,
+		Scylla: *s,
 	}
 }
 
-func (s *SavingsPlans) CreateTableName(tableName string) string {
-	return s.keyspace + "." + "user" + strings.ReplaceAll(tableName, "-", "_")
-}
-
-func (s *SavingsPlans) CreateNewSavingsPlanTable(tableName string) error {
-	tableName = s.CreateTableName(tableName)
+func (s *SavingsPlans) CreateNewTable(tableName string) error {
+	tablePath := s.CreateTablePath(tableName, "user")
 	schema :=
 		"id text," +
 			"createdAt bigint," +
@@ -52,18 +40,18 @@ func (s *SavingsPlans) CreateNewSavingsPlanTable(tableName string) error {
 			"lastPaymentExecutionDate blob," +
 			"paused boolean," +
 			"PRIMARY KEY ((id), createdAt)"
-	if !s.TableExists(s.keyspace, tableName) {
-		if err := s.CreateTable(tableName, schema); err != nil {
+	if !s.TableExists(s.Keyspace, tablePath) {
+		if err := s.CreateTable(tablePath, schema); err != nil {
 			return err
 		}
 	}
 
 	return nil
 }
-func (s *SavingsPlans) GetAllSavingsPlans(tableName string) ([]*tr.SavingsPlan, error) {
-	tableName = s.CreateTableName(tableName)
+func (s *SavingsPlans) All(tableName string) ([]*tr.SavingsPlan, error) {
+	tablePath := s.CreateTablePath(tableName, "user")
 
-	iter := s.Session.Query("SELECT * FROM " + tableName).Iter()
+	iter := s.Session.Query("SELECT * FROM " + tablePath).Iter()
 
 	savingsPlans := make([]*tr.SavingsPlan, 0, iter.NumRows())
 	var sp tr.SavingsPlan
@@ -83,51 +71,11 @@ func (s *SavingsPlans) GetAllSavingsPlans(tableName string) ([]*tr.SavingsPlan, 
 	return savingsPlans, nil
 }
 
-// func (s *SavingsPlans) GetAllSavingsPlans(tableName string) ([]*tr.SavingsPlan, error) {
-// 	tableName = s.CreateTableName(tableName)
-
-// 	savingsPlans := []*tr.SavingsPlan{}
-
-// 	iter := s.Session.Query("SELECT * FROM " + tableName).Iter()
-// 	m := make(map[string]interface{})
-
-// 	for iter.MapScan(m) {
-// 		logrus.Info(m["startdate"])
-// 		gocql.Unmarshal()
-// 		savingsPlans = append(savingsPlans, &tr.SavingsPlan{
-// 			ID:           m["id"].(string),
-// 			CreatedAt:    int64(m["createdat"].(int)),
-// 			InstrumentID: m["instrumentid"].(string),
-// 			Amount:       m["amount"].(float64),
-// 			Interval:     m["interval"].(string),
-// 			StartDate: struct {
-// 				Type              string "json:\"type\""
-// 				Value             int    "json:\"value\""
-// 				NextExecutionDate string "json:\"nextExecutionDate\""
-// 			}{
-// 				Type:              m["startdate"].([]interface{})[0].(string),
-// 				Value:             m["startdate"].([]interface{})[1].(int),
-// 				NextExecutionDate: m["startdate"].([]interface{})[2].(string),
-// 			},
-// 			FirstExecutionDate:           m["firstexecutiondate"].(string),
-// 			NextExecutionDate:            m["nextexecutiondate"].(string),
-// 			PreviousExecutionDate:        m["previousexecutiondate"].(string),
-// 			VirtualPreviousExecutionDate: m["virtualpreviousexecutiondate"].(string),
-// 			FinalExecutionDate:           m["finalexecutiondate"].(string),
-// 			PaymentMethodID:              m["paymentmethodid"].(string),
-// 			PaymentMethodCode:            m["paymentmethodcode"].(string),
-// 			LastPaymentExecutionDate:     m["lastpaymentexecutiondate"].(string),
-// 			Paused:                       m["paused"].(bool),
-// 		})
-// 	}
-// 	return savingsPlans, nil
-// }
-
-func (s *SavingsPlans) GetSavingsPlanByID(tableName string, id string) (*tr.SavingsPlan, error) {
-	tableName = s.CreateTableName(tableName)
+func (s *SavingsPlans) GetByID(tableName string, id string) (*tr.SavingsPlan, error) {
+	tablePath := s.CreateTablePath(tableName, "user")
 	var savingsPlan tr.SavingsPlan
 
-	err := s.Session.Query("SELECT * FROM "+tableName+" WHERE id = ?", id).Scan(
+	err := s.Session.Query("SELECT * FROM "+tablePath+" WHERE id = ?", id).Scan(
 		&savingsPlan.ID,
 		&savingsPlan.CreatedAt,
 		&savingsPlan.InstrumentID,
@@ -150,24 +98,23 @@ func (s *SavingsPlans) GetSavingsPlanByID(tableName string, id string) (*tr.Savi
 	return &savingsPlan, err
 }
 
-func (s *SavingsPlans) AddSavingsPlans(tableName string, savingsplans *[]tr.SavingsPlan) error {
+func (s *SavingsPlans) InsertMany(tableName string, savingsplans *[]tr.SavingsPlan) error {
 	for _, savingsplan := range *savingsplans {
-		if err := s.AddSavingsPlan(tableName, &savingsplan); err != nil {
+		if err := s.InsertOne(tableName, &savingsplan); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *SavingsPlans) AddSavingsPlan(tableName string, savingsplan *tr.SavingsPlan) error {
-	tableName = s.CreateTableName(tableName)
-	logrus.Info("Saving savingsplan: ", savingsplan)
-	return s.Insert(tableName, savingsplan)
+func (s *SavingsPlans) InsertOne(tableName string, savingsplan *tr.SavingsPlan) error {
+	tablePath := s.CreateTablePath(tableName, "user")
+	return s.Insert(tablePath, savingsplan)
 }
 
-func (s *SavingsPlans) UpdateSavingsPlan(tableName string, savingsplan *tr.SavingsPlan) error {
-	tableName = s.CreateTableName(tableName)
-	return s.Session.Query("UPDATE "+tableName+" SET "+"id = ?, created_at = ?, instrument_id = ?, amount = ?, interval = ?, start_date= ?, first_execution_date = ?, next_execution_date = ?, previous_execution_date = ?, virtual_previous_execution_date = ?, final_execution_date = ?, payment_method_id = ?, payment_method_code = ?, last_payment_execution_date = ?, paused = ? WHERE id = ?",
+func (s *SavingsPlans) Update(tableName string, savingsplan *tr.SavingsPlan) error {
+	tablePath := s.CreateTablePath(tableName, "user")
+	return s.Session.Query("UPDATE "+tablePath+" SET "+"id = ?, created_at = ?, instrument_id = ?, amount = ?, interval = ?, start_date= ?, first_execution_date = ?, next_execution_date = ?, previous_execution_date = ?, virtual_previous_execution_date = ?, final_execution_date = ?, payment_method_id = ?, payment_method_code = ?, last_payment_execution_date = ?, paused = ? WHERE id = ?",
 		savingsplan.ID,
 		savingsplan.CreatedAt,
 		savingsplan.InstrumentID,

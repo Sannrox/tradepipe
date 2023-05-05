@@ -1,0 +1,21 @@
+version: "3.3"
+services:
+  tradegrpc:
+    image: tradegrpc:0.0.0-amd64
+    ports:
+      - 50051:50051
+    command: ['tradegrpc', '-d', '--db', 'db']
+    depends_on:
+      - db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  db:
+    image:  scylladb/scylla:latest
+    environment:
+      - SCYLLA_REPLICATION_FACTOR=3
+
+

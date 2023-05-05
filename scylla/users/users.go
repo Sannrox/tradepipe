@@ -134,7 +134,7 @@ func (u *User) DeleteUser(number string) error {
 	if err != nil {
 		return err
 	}
-	return u.Scylla.Delete(tableName, entry.ID, entry)
+	return u.Scylla.Delete(tableName, entry.ID.String())
 }
 
 func (u *User) GetAllUsers() error {

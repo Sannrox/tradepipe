@@ -72,6 +72,10 @@ func ExecuteCLI(args []string) error {
 	// 	return err
 	// }
 
+	// _, err = client.Timeline(processId.ProcessId)
+	// if err != nil {
+	// 	return err
+	// }
 	_, err = client.SavingsPlans(processId.ProcessId)
 	if err != nil {
 		return err

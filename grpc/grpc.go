@@ -27,9 +27,7 @@ import (
 )
 
 const (
-	user_keyspace        = "user"
-	portfolio_keyspace   = "portfolio"
-	savingsPlan_keyspace = "savingsplan"
+	user_keyspace = "user"
 )
 
 type GRPCServer struct {
@@ -47,6 +45,7 @@ type Keyspaces struct {
 	User         *users.User
 	Portfolio    *tr_storage.Portfolios
 	Savingsplans *tr_storage.SavingsPlans
+	Timelines    *tr_storage.Timeline
 }
 
 var port = flag.Int("port", 50051, "The server port")
@@ -58,8 +57,9 @@ func NewGRPCServer(dbhost string) *GRPCServer {
 		overWriteTls: false,
 		Keyspaces: Keyspaces{
 			User:         users.NewUserKeyspace(dbhost, user_keyspace),
-			Portfolio:    tr_storage.NewPortfolioKeyspace(dbhost, portfolio_keyspace),
-			Savingsplans: tr_storage.NewSavingsPlanKeyspace(dbhost, savingsPlan_keyspace),
+			Portfolio:    tr_storage.NewPortfolioKeyspace(dbhost),
+			Savingsplans: tr_storage.NewSavingsPlanKeyspace(dbhost),
+			Timelines:    tr_storage.NewTimelineKeyspace(dbhost),
 		},
 	}
 }
@@ -152,23 +152,46 @@ func (s *GRPCServer) Timeline(ctx context.Context, in *timeline.RequestTimeline)
 	s.Lock.Unlock()
 	data := make(chan tr.Message)
 
-	err := client.NewWebSocketConnection(data)
+	user, err := s.User.ReadUser(client.Creds.Number)
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Failed to read user")
+	}
+
+	if err := s.Timelines.CreateNewTable(user.ID.String()); err != nil {
+		return nil, logger.ErrorWrapper(err, "Failed to create new table")
+	}
+
+	userTimeline, err := s.Timelines.All(user.ID.String())
+	if err != nil {
+		return nil, logger.ErrorWrapper(err, "Failed to read timeline")
+	}
+
+	if err := client.NewWebSocketConnection(data); err != nil {
+		return nil, logger.ErrorWrapper(err, "Failed to connect to websocket")
 	}
 
 	time.Sleep(10 * time.Second)
 	tl := tr.NewTimeLine(client)
 
 	tl.SetSinceTimestamp(int64(in.GetSinceTimestamp()))
-	err = tl.LoadTimeLine(ctx, data)
-	if err != nil {
-		return nil, err
+	if err = tl.LoadTimeLine(ctx, data); err != nil {
+		return nil, logger.ErrorWrapper(err, "Failed to load timeline")
+
 	}
 	bytes, err := tl.GetTimeLineEventsAsBytes()
 	if err != nil {
-		return nil, err
+		return nil, logger.ErrorWrapper(err, "Failed to get timeline events as bytes")
 	}
+
+	newTimelines := tl.GetTimeLineEvents()
+	if err := s.Timelines.InsertMany(user.ID.String(), &newTimelines); err != nil {
+		return nil, logger.ErrorWrapper(err, "Failed to insert new timelines")
+	}
+
+	for _, timeline := range newTimelines {
+		userTimeline = append(userTimeline, &timeline)
+	}
+
 	logrus.Debug(fmt.Sprintf("Timeline: %s", bytes))
 	return &timeline.ResponseTimeline{
 		ProcessId: in.ProcessId,
@@ -276,12 +299,12 @@ func (s *GRPCServer) SavingsPlans(ctx context.Context, in *savingsplan.RequestSa
 		return nil, logger.ErrorWrapper(err, "Error reading user from database")
 	}
 
-	err = s.Savingsplans.CreateNewSavingsPlanTable(user.ID.String())
+	err = s.Savingsplans.CreateNewTable(user.ID.String())
 	if err != nil {
 		return nil, logger.ErrorWrapper(err, "Error creating new savingsplan table")
 	}
 
-	savingsplans, err := s.Savingsplans.GetAllSavingsPlans(user.ID.String())
+	savingsplans, err := s.Savingsplans.All(user.ID.String())
 	if err != nil {
 		return nil, logger.ErrorWrapper(err, "Error getting all savingsplans from database")
 	}
@@ -302,7 +325,7 @@ func (s *GRPCServer) SavingsPlans(ctx context.Context, in *savingsplan.RequestSa
 	}
 
 	newSavingsplans := p.GetSavingsPlans()
-	err = s.Savingsplans.AddSavingsPlans(user.ID.String(), &newSavingsplans)
+	err = s.Savingsplans.InsertMany(user.ID.String(), &newSavingsplans)
 	if err != nil {
 		return nil, logger.ErrorWrapper(err, "Error adding savingsplans to database")
 	}
