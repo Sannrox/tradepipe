@@ -14,8 +14,11 @@ services:
         max_attempts: 3
         window: 120s
   db:
-    image:  scylladb/scylla:latest
-    environment:
-      - SCYLLA_REPLICATION_FACTOR=3
+    image: scylladb/scylla:latest
+    hostname: db
+    # ports:
+    #   - "9042:9042"
+    volumes:
+      - ./data:/var/lib/scylla
 
 

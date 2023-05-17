@@ -30,6 +30,24 @@ func NewScyllaKeySpaceConnection(contactPoint string, keyspace string) (*Scylla,
 	return NewScyllaDbWithPool(contactPoint, keyspace, 10)
 }
 
+func TryToConnectWithRetry(contactPoint string, attempts int, timeout time.Duration) error {
+	cluster := gocql.NewCluster(contactPoint)
+	for i := 0; i < attempts; i++ {
+		session, err := cluster.CreateSession()
+		if err != nil {
+			logrus.Warnf("could not connect to scylla, retrying in %s", timeout)
+			time.Sleep(timeout)
+			continue
+		}
+
+		defer session.Close()
+		logrus.Infof("established connection to scylla")
+		return nil
+	}
+
+	return fmt.Errorf("could not connect to scylla after %d attempts", attempts)
+}
+
 func NewScyllaDbWithPool(contactPoint string, keyspace string, poolSize int) (*Scylla, error) {
 	cluster := gocql.NewCluster(contactPoint)
 	cluster.Keyspace = keyspace

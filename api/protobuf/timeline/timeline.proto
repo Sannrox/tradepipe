@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+
+package timeline;
+option go_package = "github.com/Sannrox/tradepipe/gear/protobuf/timeline";
+
+
+message RequestTimeline {
+   string processId = 1;
+   oneof timeline {
+      double sinceTimestamp = 2;
+   }
+}
+
+message ResponseTimeline {
+   string processId = 1;
+   string error = 2;
+   bytes items = 3;
+}
+
+
+

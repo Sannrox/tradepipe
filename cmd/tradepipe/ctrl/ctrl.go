@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sannrox/tradepipe/grpc"
+	"github.com/Sannrox/tradepipe/gear"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func ExecuteCLI(args []string) error {
 	number := args[0]
 	pin := args[1]
 
-	client := grpc.NewClient()
+	client := gear.NewClient()
 
 	err := client.Connect(fmt.Sprintf("%s:%s", "localhost", "50051"))
 	if err != nil {

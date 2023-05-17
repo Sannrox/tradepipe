@@ -30,21 +30,21 @@ type entry struct {
 	Pin    string     `json:"pin,omitempty"`
 }
 
-func NewUserKeyspace(contactPoint string, keyspace string) *User {
+func NewUserKeyspace(contactPoint string, keyspace string) (*User, error) {
 	if err := scylla.CreateKeyspace(contactPoint, keyspace); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	s, err := scylla.NewScyllaDbWithPool(contactPoint, keyspace, 10)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &User{
 		Scylla:   *s,
 		Users:    nil,
 		keyspace: keyspace,
-	}
+	}, nil
 }
 
 func (u *User) CreateNewUserTable() error {

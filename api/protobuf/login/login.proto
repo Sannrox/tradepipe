@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package login;
+
+option go_package = "github.com/Sannrox/tradepipe/gear/protobuf/login";
+
+
+message Credentials {
+    string number = 1;
+    string pin = 2;
+}
+
+message ProcessId {
+    string processId = 1;
+    string error = 2;
+}
+
+
+message TwoFAAsks {
+    string processId = 1;
+    int32 verifyCode = 2;
+}
+
+message TwoFAReturn {
+    string error = 1;
+}

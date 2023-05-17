@@ -3,11 +3,11 @@ package fakegrpcclient
 import (
 	"context"
 
-	"github.com/Sannrox/tradepipe/grpc/pb"
-	"github.com/Sannrox/tradepipe/grpc/pb/login"
-	"github.com/Sannrox/tradepipe/grpc/pb/portfolio"
-	"github.com/Sannrox/tradepipe/grpc/pb/savingsplan"
-	"github.com/Sannrox/tradepipe/grpc/pb/timeline"
+	pb "github.com/Sannrox/tradepipe/gear/protobuf"
+	"github.com/Sannrox/tradepipe/gear/protobuf/login"
+	"github.com/Sannrox/tradepipe/gear/protobuf/portfolio"
+	"github.com/Sannrox/tradepipe/gear/protobuf/savingsplan"
+	"github.com/Sannrox/tradepipe/gear/protobuf/timeline"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

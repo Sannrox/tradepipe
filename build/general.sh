@@ -1,4 +1,4 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 
 # shellcheck disable=SC2034
 
@@ -82,30 +82,30 @@ function build::docker_image_exits(){
 }
 
 function build::docker_delete_old_images() {
-    for tag in $("${DOCKER[@]}" images "${1}" | tail -n +2 | awk '{echo $2}'); do 
-    if  [[ "${tag}" != "${2}*" ]] ; then 
+    for tag in $("${DOCKER[@]}" images "${1}" | tail -n +2 | awk '{echo $2}'); do
+    if  [[ "${tag}" != "${2}*" ]] ; then
         echo "Keeping image ${1}:${tag}"
         continue
-    fi 
-    if [[ -z "${2:-}"  ||  "${tag}" != "${3}" ]]; then 
+    fi
+    if [[ -z "${2:-}"  ||  "${tag}" != "${3}" ]]; then
         echo "Deleting image ${1}:${tag}"
         "${DOCKER[@]}" rmi "${1}:${tag}"  > /dev/null
-    else 
-        echo "Keeping image ${1}:${tag}" 
+    else
+        echo "Keeping image ${1}:${tag}"
     fi
     done
 }
 
 function build::docker_delete_old_containers(){
-    for container in $("${DOCKER[@]}" ps -a | tail -n +2 | awk '{echo $NF}'); do 
-    if  [[ "${container}" != "${1}*" ]] ; then 
+    for container in $("${DOCKER[@]}" ps -a | tail -n +2 | awk '{echo $NF}'); do
+    if  [[ "${container}" != "${1}*" ]] ; then
         echo "Keeping container ${container}"
         continue
     fi
     if [[ -z "${2:-}"  ||  "${container}" != "${2}" ]]; then
         echo "Deleting container ${container}"
         build::docker_destroy_container "${container}"
-    else 
+    else
         echo "Keeping container ${container}"
     fi
     done
@@ -118,7 +118,7 @@ function build::docker_destroy_container(){
 
 
 function build::clean(){
-    build::docker_delete_old_containers "${BUILD_CONTAINER_BASE_NAME}" 
+    build::docker_delete_old_containers "${BUILD_CONTAINER_BASE_NAME}"
     build::docker_delete_old_containers "${DATA_CONTAINER_BASE_NAME}"
     build::docker_delete_old_images "${BUILD_IMAGE_REPO}"
 
@@ -153,10 +153,10 @@ function build::load_data_container(){
 
     if [[ "${ret}" -eq 0 && "${code}" != 0 ]]; then
         build::docker_destroy_container "${DATA_CONTAINER_NAME}"
-        ret=1 
+        ret=1
     fi
 
-    if [[ "${ret}" -ne 0 ]]; then 
+    if [[ "${ret}" -ne 0 ]]; then
         echo "Creating data container ${DATA_CONTAINER_NAME}"
 
 
@@ -178,7 +178,7 @@ function build::load_data_container(){
             chown -R "$(id -u):$(id -g)" "${REMOTE_ROOT}" /usr/local/go/pkg
         )
 
-        "${docker_run_cmd[@]}" 
+        "${docker_run_cmd[@]}"
     fi
 }
 
@@ -245,7 +245,7 @@ function build::run_build_command_in_build_image(){
     )
 
 
-    if [[ -t 0 ]]; then 
+    if [[ -t 0 ]]; then
         docker_run_opts+=(--interactive --tty)
     elif [[ "${detach}" == "false" ]]; then
         docker_run_opts+=(--attach=stdout --attach=stderr)
@@ -264,9 +264,9 @@ function build::docker_build() {
     local -r image="${1}"
     local -r context_dir="${2}"
     local -r pull="${3:-true}"
-    local build_args 
+    local build_args
     IFS=" " read -r -a build_args <<< "$4"
-    
+
     local -ra build_cmd=("${DOCKER[@]}" buildx build "${build_args[@]}" -t "${image}" "--pull=${pull}" "${context_dir}")
 
     echo "Building docker image ${image} with context ${context_dir}"
@@ -286,8 +286,8 @@ EOF
 }
 
 function build::get_docker_wrapped_binaries() {
-    targets="tradegrpc,${GRPC_SERVER_BASE_IMAGE}\
-        tradehttp,${HTTP_SERVER_BASE_IMAGE}"
+    targets="tradegear,${GRPC_SERVER_BASE_IMAGE}\
+        tradeapi,${HTTP_SERVER_BASE_IMAGE}"
 
     echo "${targets}"
 }
