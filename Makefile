@@ -7,9 +7,6 @@ MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
 
-
-
-
 all:
 	./scripts/make-targets/build.sh $(TARGETS)
 

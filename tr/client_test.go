@@ -22,10 +22,13 @@ func TestClient(t *testing.T) {
 	go FakeServer.Run(done, port)
 
 	url := fmt.Sprintf("https://localhost:%d", port)
+	wss := fmt.Sprintf("wss://localhost:%d", port)
+
 	if err := utils.WaitForRestServerToBeUp(url, 10); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("TR_SERVER_URL", url)
+	t.Setenv("TR_SERVER_WS_URL", wss)
 
 	t.Run("TestLogin", Login)
 	t.Run("TestVerify", Verify)
@@ -40,7 +43,7 @@ func Login(t *testing.T) {
 	client.SetHTTPClient(fake.OverWriteClient())
 	client.SetTLSConfig(fake.OverWriteTSLClientConfig())
 	client.SetBaseURL(os.Getenv("TR_SERVER_URL"))
-	client.SetWSBaseURL(os.Getenv("TR_SERVER_URL"))
+	client.SetWSBaseURL(os.Getenv("TR_SERVER_WS_URL"))
 
 	client.SetCredentials("+49111111111", "1111")
 
@@ -62,7 +65,7 @@ func Verify(t *testing.T) {
 	client.SetHTTPClient(fake.OverWriteClient())
 	client.SetTLSConfig(fake.OverWriteTSLClientConfig())
 	client.SetBaseURL(os.Getenv("TR_SERVER_URL"))
-	client.SetWSBaseURL(os.Getenv("TR_SERVER_URL"))
+	client.SetWSBaseURL(os.Getenv("TR_SERVER_WS_URL"))
 
 	client.SetCredentials("+49111111111", "1111")
 	err := client.Login()
@@ -83,7 +86,7 @@ func Timeline(t *testing.T) {
 	client.SetHTTPClient(fake.OverWriteClient())
 	client.SetTLSConfig(fake.OverWriteTSLClientConfig())
 	client.SetBaseURL(os.Getenv("TR_SERVER_URL"))
-	client.SetWSBaseURL(os.Getenv("TR_SERVER_URL"))
+	client.SetWSBaseURL(os.Getenv("TR_SERVER_WS_URL"))
 
 	client.SetCredentials("+49111111111", "1111")
 

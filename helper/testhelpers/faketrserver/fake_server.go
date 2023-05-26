@@ -79,7 +79,6 @@ func (s *FakeServer) GenerateData() {
 	s.Portfolio.GenerateFakePortfolio()
 	s.SavingsPlans.GenerateFakeSavingsPlans(1)
 	logrus.Info("Fake Data generated")
-	logrus.Debug(s.Timeline)
 }
 
 func (s *FakeServer) Run(done chan struct{}, port int) {

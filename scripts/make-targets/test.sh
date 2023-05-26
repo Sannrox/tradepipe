@@ -9,7 +9,7 @@ ROOT_PATH=$(dirname "${BASH_SOURCE[0]}")/../..
 source "${ROOT_PATH}/scripts/lib/init.sh"
 
 CI=${CI:-}
-GO_TEST_TIMEOUT=${GO_TEST_TIMEOUT:-"-timeout=180s"}
+GO_TEST_TIMEOUT=${GO_TEST_TIMEOUT:-"-timeout=5m"}
 GO_TEST=${GO_TEST:-}
 GO_TEST_DIR=${GO_TEST_DIR:-"${ROOT_PATH}/_output/test-results"}
 GO_TESTSUM=${GO_TESTSUM:-}
@@ -46,8 +46,8 @@ function install_gotestsum() {
 
 function check_if_race(){
 if [ -n "${GOHOSTARCH}" ]; then
-    if [ "${GOHOSTARCH}" = "amd64" ]; then 
-        case "${GOHOSTOS}" in 
+    if [ "${GOHOSTARCH}" = "amd64" ]; then
+        case "${GOHOSTOS}" in
             linux)
             goflags+=(-race)
             ;;

@@ -20,7 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type RequestPositions struct {
+type RequestPortfolioUpdate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -28,8 +28,8 @@ type RequestPositions struct {
 	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
 }
 
-func (x *RequestPositions) Reset() {
-	*x = RequestPositions{}
+func (x *RequestPortfolioUpdate) Reset() {
+	*x = RequestPortfolioUpdate{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -37,13 +37,13 @@ func (x *RequestPositions) Reset() {
 	}
 }
 
-func (x *RequestPositions) String() string {
+func (x *RequestPortfolioUpdate) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestPositions) ProtoMessage() {}
+func (*RequestPortfolioUpdate) ProtoMessage() {}
 
-func (x *RequestPositions) ProtoReflect() protoreflect.Message {
+func (x *RequestPortfolioUpdate) ProtoReflect() protoreflect.Message {
 	mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,30 +55,28 @@ func (x *RequestPositions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestPositions.ProtoReflect.Descriptor instead.
-func (*RequestPositions) Descriptor() ([]byte, []int) {
+// Deprecated: Use RequestPortfolioUpdate.ProtoReflect.Descriptor instead.
+func (*RequestPortfolioUpdate) Descriptor() ([]byte, []int) {
 	return file_api_protobuf_portfolio_portfolio_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RequestPositions) GetProcessId() string {
+func (x *RequestPortfolioUpdate) GetProcessId() string {
 	if x != nil {
 		return x.ProcessId
 	}
 	return ""
 }
 
-type ResponsePositions struct {
+type RequestPortfolio struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
-	Error     string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Postions  []byte `protobuf:"bytes,3,opt,name=postions,proto3" json:"postions,omitempty"`
 }
 
-func (x *ResponsePositions) Reset() {
-	*x = ResponsePositions{}
+func (x *RequestPortfolio) Reset() {
+	*x = RequestPortfolio{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -86,13 +84,13 @@ func (x *ResponsePositions) Reset() {
 	}
 }
 
-func (x *ResponsePositions) String() string {
+func (x *RequestPortfolio) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ResponsePositions) ProtoMessage() {}
+func (*RequestPortfolio) ProtoMessage() {}
 
-func (x *ResponsePositions) ProtoReflect() protoreflect.Message {
+func (x *RequestPortfolio) ProtoReflect() protoreflect.Message {
 	mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -104,28 +102,69 @@ func (x *ResponsePositions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ResponsePositions.ProtoReflect.Descriptor instead.
-func (*ResponsePositions) Descriptor() ([]byte, []int) {
+// Deprecated: Use RequestPortfolio.ProtoReflect.Descriptor instead.
+func (*RequestPortfolio) Descriptor() ([]byte, []int) {
 	return file_api_protobuf_portfolio_portfolio_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ResponsePositions) GetProcessId() string {
+func (x *RequestPortfolio) GetProcessId() string {
 	if x != nil {
 		return x.ProcessId
 	}
 	return ""
 }
 
-func (x *ResponsePositions) GetError() string {
+type ResponsePortfolio struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
+	Positions []byte `protobuf:"bytes,2,opt,name=positions,proto3" json:"positions,omitempty"`
+}
+
+func (x *ResponsePortfolio) Reset() {
+	*x = ResponsePortfolio{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponsePortfolio) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponsePortfolio) ProtoMessage() {}
+
+func (x *ResponsePortfolio) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_portfolio_portfolio_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponsePortfolio.ProtoReflect.Descriptor instead.
+func (*ResponsePortfolio) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_portfolio_portfolio_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ResponsePortfolio) GetProcessId() string {
 	if x != nil {
-		return x.Error
+		return x.ProcessId
 	}
 	return ""
 }
 
-func (x *ResponsePositions) GetPostions() []byte {
+func (x *ResponsePortfolio) GetPositions() []byte {
 	if x != nil {
-		return x.Postions
+		return x.Positions
 	}
 	return nil
 }
@@ -136,20 +175,22 @@ var file_api_protobuf_portfolio_portfolio_proto_rawDesc = []byte{
 	0x0a, 0x26, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x70,
 	0x6f, 0x72, 0x74, 0x66, 0x6f, 0x6c, 0x69, 0x6f, 0x2f, 0x70, 0x6f, 0x72, 0x74, 0x66, 0x6f, 0x6c,
 	0x69, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x09, 0x70, 0x6f, 0x72, 0x74, 0x66, 0x6f,
-	0x6c, 0x69, 0x6f, 0x22, 0x30, 0x0a, 0x10, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x50, 0x6f,
-	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65,
-	0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63,
-	0x65, 0x73, 0x73, 0x49, 0x64, 0x22, 0x63, 0x0a, 0x11, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72,
-	0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70,
-	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f,
-	0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x1a,
-	0x0a, 0x08, 0x70, 0x6f, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x08, 0x70, 0x6f, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x42, 0x36, 0x5a, 0x34, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x53, 0x61, 0x6e, 0x6e, 0x72, 0x6f, 0x78,
-	0x2f, 0x74, 0x72, 0x61, 0x64, 0x65, 0x70, 0x69, 0x70, 0x65, 0x2f, 0x67, 0x65, 0x61, 0x72, 0x2f,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x70, 0x6f, 0x72, 0x74, 0x66, 0x6f, 0x6c,
-	0x69, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x69, 0x6f, 0x22, 0x36, 0x0a, 0x16, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x50, 0x6f,
+	0x72, 0x74, 0x66, 0x6f, 0x6c, 0x69, 0x6f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x1c, 0x0a,
+	0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x22, 0x30, 0x0a, 0x10, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x50, 0x6f, 0x72, 0x74, 0x66, 0x6f, 0x6c, 0x69, 0x6f, 0x12,
+	0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x22, 0x4f, 0x0a,
+	0x11, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x50, 0x6f, 0x72, 0x74, 0x66, 0x6f, 0x6c,
+	0x69, 0x6f, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64,
+	0x12, 0x1c, 0x0a, 0x09, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x09, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x42, 0x36,
+	0x5a, 0x34, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x53, 0x61, 0x6e,
+	0x6e, 0x72, 0x6f, 0x78, 0x2f, 0x74, 0x72, 0x61, 0x64, 0x65, 0x70, 0x69, 0x70, 0x65, 0x2f, 0x67,
+	0x65, 0x61, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x70, 0x6f, 0x72,
+	0x74, 0x66, 0x6f, 0x6c, 0x69, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -164,10 +205,11 @@ func file_api_protobuf_portfolio_portfolio_proto_rawDescGZIP() []byte {
 	return file_api_protobuf_portfolio_portfolio_proto_rawDescData
 }
 
-var file_api_protobuf_portfolio_portfolio_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_protobuf_portfolio_portfolio_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_protobuf_portfolio_portfolio_proto_goTypes = []interface{}{
-	(*RequestPositions)(nil),  // 0: portfolio.RequestPositions
-	(*ResponsePositions)(nil), // 1: portfolio.ResponsePositions
+	(*RequestPortfolioUpdate)(nil), // 0: portfolio.RequestPortfolioUpdate
+	(*RequestPortfolio)(nil),       // 1: portfolio.RequestPortfolio
+	(*ResponsePortfolio)(nil),      // 2: portfolio.ResponsePortfolio
 }
 var file_api_protobuf_portfolio_portfolio_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -184,7 +226,7 @@ func file_api_protobuf_portfolio_portfolio_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_api_protobuf_portfolio_portfolio_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RequestPositions); i {
+			switch v := v.(*RequestPortfolioUpdate); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -196,7 +238,19 @@ func file_api_protobuf_portfolio_portfolio_proto_init() {
 			}
 		}
 		file_api_protobuf_portfolio_portfolio_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ResponsePositions); i {
+			switch v := v.(*RequestPortfolio); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_portfolio_portfolio_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponsePortfolio); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -214,7 +268,7 @@ func file_api_protobuf_portfolio_portfolio_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_protobuf_portfolio_portfolio_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

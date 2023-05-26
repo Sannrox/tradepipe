@@ -141,9 +141,12 @@ func (t *TimeLine) LoadNextTimeline(response map[string]interface{}, maxAgeTimes
 
 func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) error {
 
-	_, err := t.RequestTimeLineDetails(5, t.SinceTimestamp)
+	re, err := t.RequestTimeLineDetails(5, t.SinceTimestamp)
 	if err != nil {
 		return err
+	}
+	if re == -1 {
+		return nil
 	}
 	for {
 		select {
@@ -162,9 +165,11 @@ func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) e
 					return err
 				}
 				t.TimelineDetails = append(t.TimelineDetails, timelineDetail)
-				if end, err := t.loadMoreTimeLineDetails(t.SinceTimestamp); err != nil {
+				end, err := t.loadMoreTimeLineDetails(t.SinceTimestamp)
+				if err != nil {
 					return err
-				} else if end == -1 {
+				}
+				if end == -1 {
 					return nil
 				}
 			} else {

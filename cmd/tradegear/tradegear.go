@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sannrox/tradepipe/gear"
+	"github.com/Sannrox/tradepipe/gear/server"
 	"github.com/Sannrox/tradepipe/logger"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +25,7 @@ type TradeGrpcOptions struct {
 	DBAttempts int
 	DBTimeouts time.Duration
 	DB         string
+	DBPort     int
 }
 
 func NewTadeGrpcCmd() *cobra.Command {
@@ -46,13 +47,9 @@ func NewTadeGrpcCmd() *cobra.Command {
 				}
 			}
 
-			server := gear.NewGRPCServer()
+			s := server.NewServer()
 
-			if err := server.CreateKeySpaceConnection(opts.DB, opts.DBAttempts, opts.DBTimeouts); err != nil {
-				return err
-			}
-
-			return server.Run(opts.Done)
+			return s.Run(opts.Done, opts.DB, opts.DBPort, opts.DBAttempts, opts.DBTimeouts)
 		},
 	}
 
@@ -61,6 +58,7 @@ func NewTadeGrpcCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&opts.Debug, "debug", "d", false, "Enable debug logging")
 	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "tradegrpc.log", "Log file to write to")
 	cmd.Flags().StringVarP(&opts.DB, "db", "b", "localhost", "Database host")
+	cmd.Flags().IntVarP(&opts.DBPort, "dbport", "p", 9042, "Database port")
 
 	return cmd
 }

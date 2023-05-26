@@ -4,12 +4,14 @@ package savingsplan;
 
 option go_package = "github.com/Sannrox/tradepipe/gear/protobuf/savingsplan";
 
+message RequestSavingsplanUpdate {
+    string process_id = 1;
+}
 message RequestSavingsplan {
     string process_id = 1;
 }
 
 message ResponseSavingsplan {
     string process_id = 1;
-    string error = 2;
     bytes savingsplans = 3;
 }

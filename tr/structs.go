@@ -26,6 +26,10 @@ type TimeLineEvent struct {
 		CashChangeAmount float64       `json:"cashChangeAmount,omitempty"`
 	} `json:"data"`
 }
+type Action struct {
+	Type    string      `json:"type,omitempty"`
+	Payload interface{} `json:"payload,omitempty"`
+}
 
 type TimelineDetail struct {
 	ID           string `json:"id"`

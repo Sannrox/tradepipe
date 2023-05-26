@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sannrox/tradepipe/gear"
+	"github.com/Sannrox/tradepipe/gear/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -35,17 +35,17 @@ func ExecuteCLI(args []string) error {
 	number := args[0]
 	pin := args[1]
 
-	client := gear.NewClient()
+	c := client.NewClient()
 
-	err := client.Connect(fmt.Sprintf("%s:%s", "localhost", "50051"))
+	err := c.Connect(fmt.Sprintf("%s:%s", "localhost", "50051"))
 	if err != nil {
 		return err
 	}
 
-	defer client.Close()
+	defer c.Close()
 	logrus.Info("Connected to server")
 
-	processId, err := client.Login(number, pin)
+	processId, err := c.Login(number, pin)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func ExecuteCLI(args []string) error {
 		return err
 	}
 
-	login, err := client.Verify(processId.ProcessId, int32(intVar))
+	login, err := c.Verify(processId.ProcessId, int32(intVar))
 	if err != nil {
 		return err
 	}
@@ -67,19 +67,27 @@ func ExecuteCLI(args []string) error {
 		return fmt.Errorf("error: %s", login.Error)
 	}
 
-	// _, err = client.Positions(processId.ProcessId)
+	// err = c.UpdatePositions(processId.ProcessId)
 	// if err != nil {
 	// 	return err
 	// }
-
-	// _, err = client.Timeline(processId.ProcessId)
-	// if err != nil {
-	// 	return err
-	// }
-	_, err = client.SavingsPlans(processId.ProcessId)
+	err = c.UpdateTimeline(processId.ProcessId)
 	if err != nil {
 		return err
 	}
+	err = c.UpdateSavingsPlans(processId.ProcessId)
+	if err != nil {
+		return err
+	}
+
+	// _, err = c.Timeline(processId.ProcessId)
+	// if err != nil {
+	// 	return err
+	// }
+	// _, err = c.SavingsPlans(processId.ProcessId)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// var positionsJson []tr.Position
 

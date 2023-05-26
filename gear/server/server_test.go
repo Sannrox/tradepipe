@@ -1,4 +1,4 @@
-package gear
+package server
 
 import (
 	"context"
@@ -8,14 +8,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Sannrox/tradepipe/gear/client"
 	pb "github.com/Sannrox/tradepipe/gear/protobuf"
-	test "github.com/Sannrox/tradepipe/helper/testhelpers/fakegrpcclient"
 	fake "github.com/Sannrox/tradepipe/helper/testhelpers/faketrserver"
 	"github.com/Sannrox/tradepipe/helper/testhelpers/utils"
+	"github.com/Sannrox/tradepipe/scylla/testing/container"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+const startPort = 9030
+const endPort = 9040
 
 func TestGrpcServer(t *testing.T) {
 	done := make(chan struct{})
@@ -23,10 +27,20 @@ func TestGrpcServer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := NewGRPCServer()
+	ctx := context.Background()
+	containerName, dbport, err := container.SetUpScylla(ctx, startPort, endPort)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := container.TearDownScylla(containerName, ctx); err != nil {
+			t.Fatal(fmt.Errorf("failed to tear down scylla container: %w", err))
+		}
+	})
+
+	s := NewServer()
 	s.SetBaseURL(fmt.Sprintf("https://localhost:%d", fakeTrServerPort))
 	s.SetWsURL(fmt.Sprintf("wss://localhost:%d", fakeTrServerPort))
-	s.CreateKeySpaceConnection("localhost", 10, 10*time.Second)
 
 	setClient := &http.Client{
 		Transport: &http.Transport{
@@ -41,7 +55,7 @@ func TestGrpcServer(t *testing.T) {
 	FakeServer.GenerateData()
 
 	go FakeServer.Run(done, fakeTrServerPort)
-	go s.Run(done)
+	go s.Run(done, "localhost", dbport, 10, 10*time.Second)
 
 	fakeTrServerUrl := fmt.Sprintf("https://localhost:%d", fakeTrServerPort)
 
@@ -57,11 +71,11 @@ func TestGrpcServer(t *testing.T) {
 
 	t.Run("Verify test", Verify)
 
-	// t.Run("Timeline test", Timeline)
+	t.Run("Timeline test", Timeline)
 
-	// t.Run("TimelineDetail test", TimelineDetails)
+	t.Run("TimelineDetail test", TimelineDetails)
 
-	// t.Run("Portfolio test", Portfolio)
+	t.Run("Portfolio test", Portfolio)
 
 	t.Run("Savingsplan test", SavingsPlans)
 
@@ -70,16 +84,15 @@ func TestGrpcServer(t *testing.T) {
 }
 
 func Login(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer c.Close()
 
-	resp, err := c.Login()
+	resp, err := c.Login("+49111111111", "1111")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,9 +111,8 @@ func Login(t *testing.T) {
 }
 
 func Verify(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,85 +131,97 @@ func Verify(t *testing.T) {
 }
 
 func Timeline(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer c.Close()
 
-	resp, err := c.Timeline("1234567890", 0)
+	err = c.UpdateTimeline("1234567890")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(resp.Error) != 0 {
-		t.Fatal(resp.Error)
+	resp, err := c.Timeline("1234567890")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(resp.Items) == 0 {
+		t.Fatal("Timeline is empty")
 	}
 
 }
 
 func TimelineDetails(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
+
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer c.Close()
 
-	resp, err := c.TimelineDetails("1234567890", 0)
+	resp, err := c.TimelineDetails("1234567890")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(resp.Error) != 0 {
-		t.Fatal(resp.Error)
+	if len(resp.Items) == 0 {
+		t.Fatal("Timeline is empty")
 	}
 
 }
 
 func Portfolio(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer c.Close()
+
+	err = c.UpdatePositions("1234567890")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := c.Positions("1234567890")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(resp.Error) != 0 {
-		t.Fatal(resp.Error)
+	if len(resp.Positions) == 0 {
+		t.Fatal("Portfolio is empty")
 	}
 
 }
 
 func SavingsPlans(t *testing.T) {
-	c := test.NewFakeClient()
-	c.SetCredentials("+49111111111", "1111")
-	err := c.Connect()
+	c := client.NewClient()
+	err := c.Connect("localhost:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer c.Close()
 
+	err = c.UpdateSavingsPlans("1234567890")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	resp, err := c.SavingsPlans("1234567890")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(resp.Error) != 0 {
-		t.Fatal(resp.Error)
+	if len(resp.Savingsplans) == 0 {
+		t.Fatal("SavingsPlans is empty")
 	}
 
 }
@@ -212,7 +236,7 @@ func waitForGrpcServerToBeUp(addr string, limit int) error {
 	client := pb.NewTradePipeClient(conn)
 
 	for i := 0; i < limit; i++ {
-		_, err := client.Alive(context.Background(), &emptypb.Empty{})
+		_, err := client.Status(context.Background(), &emptypb.Empty{})
 		if err == nil {
 			return nil
 		}

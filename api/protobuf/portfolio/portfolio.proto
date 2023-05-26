@@ -3,12 +3,17 @@ syntax = "proto3";
 package portfolio;
 option go_package = "github.com/Sannrox/tradepipe/gear/protobuf/portfolio";
 
-message RequestPositions {
+
+message RequestPortfolioUpdate {
     string processId = 1;
 }
 
-message ResponsePositions {
+
+message RequestPortfolio {
     string processId = 1;
-    string error = 2;
-    bytes postions = 3;
+}
+
+message ResponsePortfolio {
+    string processId = 1;
+    bytes positions = 2;
 }

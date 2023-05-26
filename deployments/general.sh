@@ -1,4 +1,4 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 
 set -o errexit
 set -o nounset
@@ -77,6 +77,6 @@ function deployments::docker_load_images(){
 }
 
 function deployments::get_docker_containers(){
-    targets=("tradegrpc")
+    targets=("tradegear")
     echo "${targets[@]}"
 }

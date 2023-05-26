@@ -20,7 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type RequestTimeline struct {
+type RequestTimelineUpdate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -28,14 +28,85 @@ type RequestTimeline struct {
 	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
 	// Types that are assignable to Timeline:
 	//
-	//	*RequestTimeline_SinceTimestamp
-	Timeline isRequestTimeline_Timeline `protobuf_oneof:"timeline"`
+	//	*RequestTimelineUpdate_SinceTimestamp
+	Timeline isRequestTimelineUpdate_Timeline `protobuf_oneof:"timeline"`
+}
+
+func (x *RequestTimelineUpdate) Reset() {
+	*x = RequestTimelineUpdate{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RequestTimelineUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestTimelineUpdate) ProtoMessage() {}
+
+func (x *RequestTimelineUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestTimelineUpdate.ProtoReflect.Descriptor instead.
+func (*RequestTimelineUpdate) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *RequestTimelineUpdate) GetProcessId() string {
+	if x != nil {
+		return x.ProcessId
+	}
+	return ""
+}
+
+func (m *RequestTimelineUpdate) GetTimeline() isRequestTimelineUpdate_Timeline {
+	if m != nil {
+		return m.Timeline
+	}
+	return nil
+}
+
+func (x *RequestTimelineUpdate) GetSinceTimestamp() float64 {
+	if x, ok := x.GetTimeline().(*RequestTimelineUpdate_SinceTimestamp); ok {
+		return x.SinceTimestamp
+	}
+	return 0
+}
+
+type isRequestTimelineUpdate_Timeline interface {
+	isRequestTimelineUpdate_Timeline()
+}
+
+type RequestTimelineUpdate_SinceTimestamp struct {
+	SinceTimestamp float64 `protobuf:"fixed64,2,opt,name=sinceTimestamp,proto3,oneof"`
+}
+
+func (*RequestTimelineUpdate_SinceTimestamp) isRequestTimelineUpdate_Timeline() {}
+
+type RequestTimeline struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
 }
 
 func (x *RequestTimeline) Reset() {
 	*x = RequestTimeline{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[0]
+		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -48,7 +119,7 @@ func (x *RequestTimeline) String() string {
 func (*RequestTimeline) ProtoMessage() {}
 
 func (x *RequestTimeline) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[0]
+	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +132,7 @@ func (x *RequestTimeline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestTimeline.ProtoReflect.Descriptor instead.
 func (*RequestTimeline) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{0}
+	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RequestTimeline) GetProcessId() string {
@@ -71,44 +142,19 @@ func (x *RequestTimeline) GetProcessId() string {
 	return ""
 }
 
-func (m *RequestTimeline) GetTimeline() isRequestTimeline_Timeline {
-	if m != nil {
-		return m.Timeline
-	}
-	return nil
-}
-
-func (x *RequestTimeline) GetSinceTimestamp() float64 {
-	if x, ok := x.GetTimeline().(*RequestTimeline_SinceTimestamp); ok {
-		return x.SinceTimestamp
-	}
-	return 0
-}
-
-type isRequestTimeline_Timeline interface {
-	isRequestTimeline_Timeline()
-}
-
-type RequestTimeline_SinceTimestamp struct {
-	SinceTimestamp float64 `protobuf:"fixed64,2,opt,name=sinceTimestamp,proto3,oneof"`
-}
-
-func (*RequestTimeline_SinceTimestamp) isRequestTimeline_Timeline() {}
-
 type ResponseTimeline struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
-	Error     string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	Items     []byte `protobuf:"bytes,3,opt,name=items,proto3" json:"items,omitempty"`
 }
 
 func (x *ResponseTimeline) Reset() {
 	*x = ResponseTimeline{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[1]
+		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -121,7 +167,7 @@ func (x *ResponseTimeline) String() string {
 func (*ResponseTimeline) ProtoMessage() {}
 
 func (x *ResponseTimeline) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[1]
+	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -134,7 +180,7 @@ func (x *ResponseTimeline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseTimeline.ProtoReflect.Descriptor instead.
 func (*ResponseTimeline) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{1}
+	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ResponseTimeline) GetProcessId() string {
@@ -144,14 +190,109 @@ func (x *ResponseTimeline) GetProcessId() string {
 	return ""
 }
 
-func (x *ResponseTimeline) GetError() string {
+func (x *ResponseTimeline) GetItems() []byte {
 	if x != nil {
-		return x.Error
+		return x.Items
+	}
+	return nil
+}
+
+type RequestTimelineDetails struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
+}
+
+func (x *RequestTimelineDetails) Reset() {
+	*x = RequestTimelineDetails{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RequestTimelineDetails) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestTimelineDetails) ProtoMessage() {}
+
+func (x *RequestTimelineDetails) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestTimelineDetails.ProtoReflect.Descriptor instead.
+func (*RequestTimelineDetails) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RequestTimelineDetails) GetProcessId() string {
+	if x != nil {
+		return x.ProcessId
 	}
 	return ""
 }
 
-func (x *ResponseTimeline) GetItems() []byte {
+type ResponseTimelineDetails struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProcessId string `protobuf:"bytes,1,opt,name=processId,proto3" json:"processId,omitempty"`
+	Items     []byte `protobuf:"bytes,3,opt,name=items,proto3" json:"items,omitempty"`
+}
+
+func (x *ResponseTimelineDetails) Reset() {
+	*x = ResponseTimelineDetails{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponseTimelineDetails) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseTimelineDetails) ProtoMessage() {}
+
+func (x *ResponseTimelineDetails) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_timeline_timeline_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseTimelineDetails.ProtoReflect.Descriptor instead.
+func (*ResponseTimelineDetails) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_timeline_timeline_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ResponseTimelineDetails) GetProcessId() string {
+	if x != nil {
+		return x.ProcessId
+	}
+	return ""
+}
+
+func (x *ResponseTimelineDetails) GetItems() []byte {
 	if x != nil {
 		return x.Items
 	}
@@ -164,23 +305,33 @@ var file_api_protobuf_timeline_timeline_proto_rawDesc = []byte{
 	0x0a, 0x24, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74,
 	0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x74, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65,
-	0x22, 0x65, 0x0a, 0x0f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x6c,
-	0x69, 0x6e, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49,
-	0x64, 0x12, 0x28, 0x0a, 0x0e, 0x73, 0x69, 0x6e, 0x63, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
-	0x61, 0x6d, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00, 0x52, 0x0e, 0x73, 0x69, 0x6e,
-	0x63, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0a, 0x0a, 0x08, 0x74,
-	0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x22, 0x5c, 0x0a, 0x10, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x70,
-	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
-	0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72,
-	0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12,
-	0x14, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05,
-	0x69, 0x74, 0x65, 0x6d, 0x73, 0x42, 0x35, 0x5a, 0x33, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x53, 0x61, 0x6e, 0x6e, 0x72, 0x6f, 0x78, 0x2f, 0x74, 0x72, 0x61, 0x64,
-	0x65, 0x70, 0x69, 0x70, 0x65, 0x2f, 0x67, 0x65, 0x61, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0x6b, 0x0a, 0x15, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x6c,
+	0x69, 0x6e, 0x65, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f,
+	0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72,
+	0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x12, 0x28, 0x0a, 0x0e, 0x73, 0x69, 0x6e, 0x63, 0x65,
+	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x01, 0x48,
+	0x00, 0x52, 0x0e, 0x73, 0x69, 0x6e, 0x63, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x42, 0x0a, 0x0a, 0x08, 0x74, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x22, 0x2f, 0x0a,
+	0x0f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65,
+	0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x22, 0x46,
+	0x0a, 0x10, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x6c, 0x69,
+	0x6e, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64,
+	0x12, 0x14, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x22, 0x36, 0x0a, 0x16, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x54, 0x69, 0x6d, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73,
+	0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x22, 0x4d,
+	0x0a, 0x17, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x54, 0x69, 0x6d, 0x65, 0x6c, 0x69,
+	0x6e, 0x65, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f,
+	0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72,
+	0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x42, 0x35, 0x5a,
+	0x33, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x53, 0x61, 0x6e, 0x6e,
+	0x72, 0x6f, 0x78, 0x2f, 0x74, 0x72, 0x61, 0x64, 0x65, 0x70, 0x69, 0x70, 0x65, 0x2f, 0x67, 0x65,
+	0x61, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65,
+	0x6c, 0x69, 0x6e, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -195,10 +346,13 @@ func file_api_protobuf_timeline_timeline_proto_rawDescGZIP() []byte {
 	return file_api_protobuf_timeline_timeline_proto_rawDescData
 }
 
-var file_api_protobuf_timeline_timeline_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_protobuf_timeline_timeline_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_protobuf_timeline_timeline_proto_goTypes = []interface{}{
-	(*RequestTimeline)(nil),  // 0: timeline.RequestTimeline
-	(*ResponseTimeline)(nil), // 1: timeline.ResponseTimeline
+	(*RequestTimelineUpdate)(nil),   // 0: timeline.RequestTimelineUpdate
+	(*RequestTimeline)(nil),         // 1: timeline.RequestTimeline
+	(*ResponseTimeline)(nil),        // 2: timeline.ResponseTimeline
+	(*RequestTimelineDetails)(nil),  // 3: timeline.RequestTimelineDetails
+	(*ResponseTimelineDetails)(nil), // 4: timeline.ResponseTimelineDetails
 }
 var file_api_protobuf_timeline_timeline_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -215,7 +369,7 @@ func file_api_protobuf_timeline_timeline_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_api_protobuf_timeline_timeline_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RequestTimeline); i {
+			switch v := v.(*RequestTimelineUpdate); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -227,7 +381,43 @@ func file_api_protobuf_timeline_timeline_proto_init() {
 			}
 		}
 		file_api_protobuf_timeline_timeline_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RequestTimeline); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_timeline_timeline_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResponseTimeline); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_timeline_timeline_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RequestTimelineDetails); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_timeline_timeline_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponseTimelineDetails); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -240,7 +430,7 @@ func file_api_protobuf_timeline_timeline_proto_init() {
 		}
 	}
 	file_api_protobuf_timeline_timeline_proto_msgTypes[0].OneofWrappers = []interface{}{
-		(*RequestTimeline_SinceTimestamp)(nil),
+		(*RequestTimelineUpdate_SinceTimestamp)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -248,7 +438,7 @@ func file_api_protobuf_timeline_timeline_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_protobuf_timeline_timeline_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

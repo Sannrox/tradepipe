@@ -3,18 +3,16 @@ package docker
 import (
 	"bufio"
 	"context"
+	"strconv"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/sirupsen/logrus"
 )
 
 func GetDockerClient() (*client.Client, error) {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		return nil, err
-	}
-	return cli, nil
+	return client.NewEnvClient()
 }
 
 func ExecDockerContainer(ctx context.Context, cli *client.Client, containerName string, cmd []string) ([]string, error) {
@@ -48,16 +46,20 @@ func ExecDockerContainer(ctx context.Context, cli *client.Client, containerName 
 	return output, nil
 }
 
-func GetDockerContainers(ctx context.Context, cli *client.Client) ([]types.Container, error) {
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return containers, nil
+func GetDockerContainers(ctx context.Context, cli *client.Client, listOptions types.ContainerListOptions) ([]types.Container, error) {
+	return cli.ContainerList(ctx, listOptions)
+}
+
+func GetAllDockerContainers(ctx context.Context, cli *client.Client) ([]types.Container, error) {
+	return GetDockerContainers(ctx, cli, types.ContainerListOptions{All: true})
+}
+
+func GetRunningDockerContainers(ctx context.Context, cli *client.Client) ([]types.Container, error) {
+	return GetDockerContainers(ctx, cli, types.ContainerListOptions{All: false})
 }
 
 func CheckIfContainerExists(ctx context.Context, cli *client.Client, containerName string) (bool, error) {
-	containers, err := GetDockerContainers(ctx, cli)
+	containers, err := GetAllDockerContainers(ctx, cli)
 	if err != nil {
 		return false, err
 	}
@@ -71,12 +73,36 @@ func CheckIfContainerExists(ctx context.Context, cli *client.Client, containerNa
 	return false, nil
 }
 
-func RunDockerContainer(ctx context.Context, cli *client.Client, containerName string, opts types.ContainerStartOptions) error {
-	err := cli.ContainerStart(ctx, containerName, opts)
+func CheckIfContainerAllocatesPort(ctx context.Context, cli *client.Client, port int) (bool, error) {
+	containers, err := GetAllDockerContainers(ctx, cli)
 	if err != nil {
-		return err
+		return true, err
 	}
-	return nil
+	// Iterate over each container
+	for _, container := range containers {
+		// Get the container's port bindings
+		containerPorts, err := cli.ContainerInspect(context.Background(), container.ID)
+		if err != nil {
+			return false, err
+		}
+
+		// Iterate over each port binding
+		for _, portBinding := range containerPorts.NetworkSettings.Ports {
+			// Check if the port is allocated
+			if portBinding != nil && portBinding[0].HostPort == strconv.Itoa(port) {
+				logrus.Warnf("Port %d is already allocated", port)
+				return true, nil
+			}
+		}
+	}
+
+	// Port is not allocated
+	return false, nil
+
+}
+
+func RunDockerContainer(ctx context.Context, cli *client.Client, containerName string, opts types.ContainerStartOptions) error {
+	return cli.ContainerStart(ctx, containerName, opts)
 }
 
 func CreateDockerContainer(ctx context.Context, cli *client.Client, containerName string, config *container.Config, hostConfig *container.HostConfig) error {
@@ -88,27 +114,15 @@ func CreateDockerContainer(ctx context.Context, cli *client.Client, containerNam
 }
 
 func StopDockerContainer(ctx context.Context, cli *client.Client, containerName string) error {
-	err := cli.ContainerStop(ctx, containerName, container.StopOptions{})
-	if err != nil {
-		return err
-	}
-	return nil
+	return cli.ContainerStop(ctx, containerName, container.StopOptions{})
 }
 
 func RemoveDockerContainer(ctx context.Context, cli *client.Client, containerName string) error {
-	err := cli.ContainerRemove(ctx, containerName, types.ContainerRemoveOptions{})
-	if err != nil {
-		return err
-	}
-	return nil
+	return cli.ContainerRemove(ctx, containerName, types.ContainerRemoveOptions{})
 }
 
 func GetDockerImages(ctx context.Context, cli *client.Client) ([]types.ImageSummary, error) {
-	images, err := cli.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return images, nil
+	return cli.ImageList(ctx, types.ImageListOptions{})
 }
 
 func CheckIfImageExists(ctx context.Context, cli *client.Client, imageName string) (bool, error) {

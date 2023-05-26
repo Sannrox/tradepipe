@@ -12,18 +12,18 @@ package pb;
 
 option go_package = "github.com/Sannrox/tradepipe/gear/protobuf";
 
-message Alive {
-    string status = 1;
-    int64 serverTime  = 2;
-}
+
 
 service TradePipe {
-    rpc Alive(google.protobuf.Empty) returns (pb.Alive){}
+    rpc Status(google.protobuf.Empty) returns (google.protobuf.Empty){}
     rpc Login(login.Credentials) returns (login.ProcessId){}
     rpc Verify(login.TwoFAAsks) returns (login.TwoFAReturn){}
-    rpc Timeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
-    rpc TimelineDetails(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
-    rpc Positions(portfolio.RequestPositions) returns (portfolio.ResponsePositions){}
-    rpc SavingsPlans(savingsplan.RequestSavingsplan) returns (savingsplan.ResponseSavingsplan){}
+    rpc ReadTimeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
+    rpc UpdateTimeline(timeline.RequestTimelineUpdate) returns (google.protobuf.Empty){}
+    rpc ReadTimelineDetails(timeline.RequestTimelineDetails) returns (timeline.ResponseTimelineDetails){}
+    rpc ReadPortfolio(portfolio.RequestPortfolio) returns (portfolio.ResponsePortfolio){}
+    rpc UpdatePortfolio(portfolio.RequestPortfolioUpdate) returns (google.protobuf.Empty){}
+    rpc ReadSavingsPlans(savingsplan.RequestSavingsplan) returns (savingsplan.ResponseSavingsplan){}
+    rpc UpdateSavingsPlans(savingsplan.RequestSavingsplanUpdate) returns (google.protobuf.Empty){}
 }
 

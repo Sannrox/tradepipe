@@ -27,13 +27,16 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TradePipeClient interface {
-	Alive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Alive, error)
+	Status(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Login(ctx context.Context, in *login.Credentials, opts ...grpc.CallOption) (*login.ProcessId, error)
 	Verify(ctx context.Context, in *login.TwoFAAsks, opts ...grpc.CallOption) (*login.TwoFAReturn, error)
-	Timeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
-	TimelineDetails(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
-	Positions(ctx context.Context, in *portfolio.RequestPositions, opts ...grpc.CallOption) (*portfolio.ResponsePositions, error)
-	SavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error)
+	ReadTimeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error)
+	UpdateTimeline(ctx context.Context, in *timeline.RequestTimelineUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ReadTimelineDetails(ctx context.Context, in *timeline.RequestTimelineDetails, opts ...grpc.CallOption) (*timeline.ResponseTimelineDetails, error)
+	ReadPortfolio(ctx context.Context, in *portfolio.RequestPortfolio, opts ...grpc.CallOption) (*portfolio.ResponsePortfolio, error)
+	UpdatePortfolio(ctx context.Context, in *portfolio.RequestPortfolioUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ReadSavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error)
+	UpdateSavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplanUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type tradePipeClient struct {
@@ -44,9 +47,9 @@ func NewTradePipeClient(cc grpc.ClientConnInterface) TradePipeClient {
 	return &tradePipeClient{cc}
 }
 
-func (c *tradePipeClient) Alive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Alive, error) {
-	out := new(Alive)
-	err := c.cc.Invoke(ctx, "/pb.TradePipe/Alive", in, out, opts...)
+func (c *tradePipeClient) Status(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/Status", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,36 +74,63 @@ func (c *tradePipeClient) Verify(ctx context.Context, in *login.TwoFAAsks, opts 
 	return out, nil
 }
 
-func (c *tradePipeClient) Timeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error) {
+func (c *tradePipeClient) ReadTimeline(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error) {
 	out := new(timeline.ResponseTimeline)
-	err := c.cc.Invoke(ctx, "/pb.TradePipe/Timeline", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/ReadTimeline", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *tradePipeClient) TimelineDetails(ctx context.Context, in *timeline.RequestTimeline, opts ...grpc.CallOption) (*timeline.ResponseTimeline, error) {
-	out := new(timeline.ResponseTimeline)
-	err := c.cc.Invoke(ctx, "/pb.TradePipe/TimelineDetails", in, out, opts...)
+func (c *tradePipeClient) UpdateTimeline(ctx context.Context, in *timeline.RequestTimelineUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/UpdateTimeline", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *tradePipeClient) Positions(ctx context.Context, in *portfolio.RequestPositions, opts ...grpc.CallOption) (*portfolio.ResponsePositions, error) {
-	out := new(portfolio.ResponsePositions)
-	err := c.cc.Invoke(ctx, "/pb.TradePipe/Positions", in, out, opts...)
+func (c *tradePipeClient) ReadTimelineDetails(ctx context.Context, in *timeline.RequestTimelineDetails, opts ...grpc.CallOption) (*timeline.ResponseTimelineDetails, error) {
+	out := new(timeline.ResponseTimelineDetails)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/ReadTimelineDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *tradePipeClient) SavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error) {
+func (c *tradePipeClient) ReadPortfolio(ctx context.Context, in *portfolio.RequestPortfolio, opts ...grpc.CallOption) (*portfolio.ResponsePortfolio, error) {
+	out := new(portfolio.ResponsePortfolio)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/ReadPortfolio", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tradePipeClient) UpdatePortfolio(ctx context.Context, in *portfolio.RequestPortfolioUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/UpdatePortfolio", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tradePipeClient) ReadSavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplan, opts ...grpc.CallOption) (*savingsplan.ResponseSavingsplan, error) {
 	out := new(savingsplan.ResponseSavingsplan)
-	err := c.cc.Invoke(ctx, "/pb.TradePipe/SavingsPlans", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/ReadSavingsPlans", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tradePipeClient) UpdateSavingsPlans(ctx context.Context, in *savingsplan.RequestSavingsplanUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/pb.TradePipe/UpdateSavingsPlans", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,13 +141,16 @@ func (c *tradePipeClient) SavingsPlans(ctx context.Context, in *savingsplan.Requ
 // All implementations must embed UnimplementedTradePipeServer
 // for forward compatibility
 type TradePipeServer interface {
-	Alive(context.Context, *emptypb.Empty) (*Alive, error)
+	Status(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Login(context.Context, *login.Credentials) (*login.ProcessId, error)
 	Verify(context.Context, *login.TwoFAAsks) (*login.TwoFAReturn, error)
-	Timeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
-	TimelineDetails(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
-	Positions(context.Context, *portfolio.RequestPositions) (*portfolio.ResponsePositions, error)
-	SavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error)
+	ReadTimeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error)
+	UpdateTimeline(context.Context, *timeline.RequestTimelineUpdate) (*emptypb.Empty, error)
+	ReadTimelineDetails(context.Context, *timeline.RequestTimelineDetails) (*timeline.ResponseTimelineDetails, error)
+	ReadPortfolio(context.Context, *portfolio.RequestPortfolio) (*portfolio.ResponsePortfolio, error)
+	UpdatePortfolio(context.Context, *portfolio.RequestPortfolioUpdate) (*emptypb.Empty, error)
+	ReadSavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error)
+	UpdateSavingsPlans(context.Context, *savingsplan.RequestSavingsplanUpdate) (*emptypb.Empty, error)
 	mustEmbedUnimplementedTradePipeServer()
 }
 
@@ -125,8 +158,8 @@ type TradePipeServer interface {
 type UnimplementedTradePipeServer struct {
 }
 
-func (UnimplementedTradePipeServer) Alive(context.Context, *emptypb.Empty) (*Alive, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Alive not implemented")
+func (UnimplementedTradePipeServer) Status(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
 }
 func (UnimplementedTradePipeServer) Login(context.Context, *login.Credentials) (*login.ProcessId, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
@@ -134,17 +167,26 @@ func (UnimplementedTradePipeServer) Login(context.Context, *login.Credentials) (
 func (UnimplementedTradePipeServer) Verify(context.Context, *login.TwoFAAsks) (*login.TwoFAReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
 }
-func (UnimplementedTradePipeServer) Timeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Timeline not implemented")
+func (UnimplementedTradePipeServer) ReadTimeline(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadTimeline not implemented")
 }
-func (UnimplementedTradePipeServer) TimelineDetails(context.Context, *timeline.RequestTimeline) (*timeline.ResponseTimeline, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TimelineDetails not implemented")
+func (UnimplementedTradePipeServer) UpdateTimeline(context.Context, *timeline.RequestTimelineUpdate) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTimeline not implemented")
 }
-func (UnimplementedTradePipeServer) Positions(context.Context, *portfolio.RequestPositions) (*portfolio.ResponsePositions, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Positions not implemented")
+func (UnimplementedTradePipeServer) ReadTimelineDetails(context.Context, *timeline.RequestTimelineDetails) (*timeline.ResponseTimelineDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadTimelineDetails not implemented")
 }
-func (UnimplementedTradePipeServer) SavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SavingsPlans not implemented")
+func (UnimplementedTradePipeServer) ReadPortfolio(context.Context, *portfolio.RequestPortfolio) (*portfolio.ResponsePortfolio, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadPortfolio not implemented")
+}
+func (UnimplementedTradePipeServer) UpdatePortfolio(context.Context, *portfolio.RequestPortfolioUpdate) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePortfolio not implemented")
+}
+func (UnimplementedTradePipeServer) ReadSavingsPlans(context.Context, *savingsplan.RequestSavingsplan) (*savingsplan.ResponseSavingsplan, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadSavingsPlans not implemented")
+}
+func (UnimplementedTradePipeServer) UpdateSavingsPlans(context.Context, *savingsplan.RequestSavingsplanUpdate) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSavingsPlans not implemented")
 }
 func (UnimplementedTradePipeServer) mustEmbedUnimplementedTradePipeServer() {}
 
@@ -159,20 +201,20 @@ func RegisterTradePipeServer(s grpc.ServiceRegistrar, srv TradePipeServer) {
 	s.RegisterService(&TradePipe_ServiceDesc, srv)
 }
 
-func _TradePipe_Alive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TradePipe_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TradePipeServer).Alive(ctx, in)
+		return srv.(TradePipeServer).Status(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.TradePipe/Alive",
+		FullMethod: "/pb.TradePipe/Status",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TradePipeServer).Alive(ctx, req.(*emptypb.Empty))
+		return srv.(TradePipeServer).Status(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -213,74 +255,128 @@ func _TradePipe_Verify_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TradePipe_Timeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TradePipe_ReadTimeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(timeline.RequestTimeline)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TradePipeServer).Timeline(ctx, in)
+		return srv.(TradePipeServer).ReadTimeline(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.TradePipe/Timeline",
+		FullMethod: "/pb.TradePipe/ReadTimeline",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TradePipeServer).Timeline(ctx, req.(*timeline.RequestTimeline))
+		return srv.(TradePipeServer).ReadTimeline(ctx, req.(*timeline.RequestTimeline))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TradePipe_TimelineDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(timeline.RequestTimeline)
+func _TradePipe_UpdateTimeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(timeline.RequestTimelineUpdate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TradePipeServer).TimelineDetails(ctx, in)
+		return srv.(TradePipeServer).UpdateTimeline(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.TradePipe/TimelineDetails",
+		FullMethod: "/pb.TradePipe/UpdateTimeline",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TradePipeServer).TimelineDetails(ctx, req.(*timeline.RequestTimeline))
+		return srv.(TradePipeServer).UpdateTimeline(ctx, req.(*timeline.RequestTimelineUpdate))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TradePipe_Positions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(portfolio.RequestPositions)
+func _TradePipe_ReadTimelineDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(timeline.RequestTimelineDetails)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TradePipeServer).Positions(ctx, in)
+		return srv.(TradePipeServer).ReadTimelineDetails(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.TradePipe/Positions",
+		FullMethod: "/pb.TradePipe/ReadTimelineDetails",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TradePipeServer).Positions(ctx, req.(*portfolio.RequestPositions))
+		return srv.(TradePipeServer).ReadTimelineDetails(ctx, req.(*timeline.RequestTimelineDetails))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TradePipe_SavingsPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TradePipe_ReadPortfolio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(portfolio.RequestPortfolio)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TradePipeServer).ReadPortfolio(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.TradePipe/ReadPortfolio",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TradePipeServer).ReadPortfolio(ctx, req.(*portfolio.RequestPortfolio))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TradePipe_UpdatePortfolio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(portfolio.RequestPortfolioUpdate)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TradePipeServer).UpdatePortfolio(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.TradePipe/UpdatePortfolio",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TradePipeServer).UpdatePortfolio(ctx, req.(*portfolio.RequestPortfolioUpdate))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TradePipe_ReadSavingsPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(savingsplan.RequestSavingsplan)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TradePipeServer).SavingsPlans(ctx, in)
+		return srv.(TradePipeServer).ReadSavingsPlans(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.TradePipe/SavingsPlans",
+		FullMethod: "/pb.TradePipe/ReadSavingsPlans",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TradePipeServer).SavingsPlans(ctx, req.(*savingsplan.RequestSavingsplan))
+		return srv.(TradePipeServer).ReadSavingsPlans(ctx, req.(*savingsplan.RequestSavingsplan))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TradePipe_UpdateSavingsPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(savingsplan.RequestSavingsplanUpdate)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TradePipeServer).UpdateSavingsPlans(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.TradePipe/UpdateSavingsPlans",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TradePipeServer).UpdateSavingsPlans(ctx, req.(*savingsplan.RequestSavingsplanUpdate))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -293,8 +389,8 @@ var TradePipe_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TradePipeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Alive",
-			Handler:    _TradePipe_Alive_Handler,
+			MethodName: "Status",
+			Handler:    _TradePipe_Status_Handler,
 		},
 		{
 			MethodName: "Login",
@@ -305,20 +401,32 @@ var TradePipe_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TradePipe_Verify_Handler,
 		},
 		{
-			MethodName: "Timeline",
-			Handler:    _TradePipe_Timeline_Handler,
+			MethodName: "ReadTimeline",
+			Handler:    _TradePipe_ReadTimeline_Handler,
 		},
 		{
-			MethodName: "TimelineDetails",
-			Handler:    _TradePipe_TimelineDetails_Handler,
+			MethodName: "UpdateTimeline",
+			Handler:    _TradePipe_UpdateTimeline_Handler,
 		},
 		{
-			MethodName: "Positions",
-			Handler:    _TradePipe_Positions_Handler,
+			MethodName: "ReadTimelineDetails",
+			Handler:    _TradePipe_ReadTimelineDetails_Handler,
 		},
 		{
-			MethodName: "SavingsPlans",
-			Handler:    _TradePipe_SavingsPlans_Handler,
+			MethodName: "ReadPortfolio",
+			Handler:    _TradePipe_ReadPortfolio_Handler,
+		},
+		{
+			MethodName: "UpdatePortfolio",
+			Handler:    _TradePipe_UpdatePortfolio_Handler,
+		},
+		{
+			MethodName: "ReadSavingsPlans",
+			Handler:    _TradePipe_ReadSavingsPlans_Handler,
+		},
+		{
+			MethodName: "UpdateSavingsPlans",
+			Handler:    _TradePipe_UpdateSavingsPlans_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
