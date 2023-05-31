@@ -54,24 +54,6 @@ type Doc struct {
 	PostboxType string `json:"postboxType"`
 }
 
-type RawPortfolio struct {
-	NetValue                     float64    `json:"netValue"`
-	Positions                    []Position `json:"positions"`
-	ReferenceChangeProfit        int        `json:"referenceChangeProfit"`
-	ReferenceChangeProfitPercent int        `json:"referenceChangeProfitPercent"`
-	UnrealisedCost               float64    `json:"unrealisedCost"`
-	UnrealisedProfit             float64    `json:"unrealisedProfit"`
-	UnrealisedProfitPercent      float64    `json:"unrealisedProfitPercent"`
-}
-
-type Position struct {
-	InstrumentID          string  `json:"instrumentId"`
-	NetSize               float64 `json:"netSize"`
-	NetValue              float64 `json:"netValue"`
-	RealisedProfit        int     `json:"realisedProfit"`
-	UnrealisedAverageCost float64 `json:"unrealisedAverageCost"`
-}
-
 type SavingsPlan struct {
 	ID           string  `json:"id"`
 	CreatedAt    int64   `json:"createdAt"`

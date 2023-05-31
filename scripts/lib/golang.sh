@@ -51,7 +51,6 @@ function golang::server_targets(){
     local targets=(
         cmd/tradegear
         cmd/tradepipe
-        cmd/tradeapi
         )
 
     echo "${targets[@]}"

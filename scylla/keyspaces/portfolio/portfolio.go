@@ -13,11 +13,9 @@ type Portfolios struct {
 var (
 	schema string = "instrument_id text, " +
 		"net_size double, " +
-		"net_value double, " +
-		"realised_profit int, " +
-		"unrealised_average_cost double, " +
+		"average_buy_in double, " +
 		"PRIMARY KEY (instrument_id)"
-	portfolioColumns = []string{"instrument_id", "net_size", "net_value", "realised_profit", "unrealised_average_cost"}
+	portfolioColumns = []string{"instrument_id", "net_size", "average_buy_in"}
 	portfolioPartKey = []string{"instrument_id"}
 )
 

@@ -35,9 +35,9 @@ func NewSystemKeyspace(contactPoint string, port int) (*System, error) {
 	}, nil
 }
 
-func (s *System) CreateUserTable(scy *scylla.Scylla) error {
+func (s *System) CreateUserTable() error {
 	logrus.Debug("creating user table")
-	if err := s.CreateTable("users", "id uuid, number text, pin text, PRIMARY KEY (id)"); err != nil {
+	if err := s.CreateTable("users", "id uuid, number text, pin text, PRIMARY KEY (id, number)"); err != nil {
 		return err
 	}
 	logrus.Debug("created user table")
@@ -46,13 +46,13 @@ func (s *System) CreateUserTable(scy *scylla.Scylla) error {
 		PartKey: []string{"id"},
 		SortKey: []string{"number"},
 	}
-	s.Users.Table = scy.NewTable(tableMeta)
+	s.Users.Table = s.Scylla.NewTable(tableMeta)
 	logrus.Debug("created user table")
 	return nil
 }
 
 func (s *System) CreateTables() error {
-	if err := s.CreateUserTable(&s.Scylla); err != nil {
+	if err := s.CreateUserTable(); err != nil {
 		return err
 	}
 	return nil
@@ -62,15 +62,18 @@ func (s *System) CreateNewUser(number, pin string) error {
 	if s.Users.Users == nil {
 		s.Users.Users = users.NewUsers()
 	}
-	user := s.Users.CreateNewUser(number, pin)
-	if err := s.Users.AddUser(&user); err != nil {
+	user, err := s.Users.CreateNewUser(number, pin)
+	if err != nil {
+		return err
+	}
+	if err := s.Users.AddUser(user); err != nil {
 		return err
 	}
 
 	return s.Insert(s.Users.Table, &user)
 }
 
-func (s *System) getUsers() error {
+func (s *System) GetUsers() error {
 	var allUsers []users.User
 	if s.Users.Users == nil {
 		s.Users.Users = users.NewUsers()
@@ -102,7 +105,7 @@ func (s *System) getUsers() error {
 }
 
 func (s *System) GetUser(number string) (*users.User, error) {
-	if err := s.getUsers(); err != nil {
+	if err := s.GetUsers(); err != nil {
 		return nil, err
 	}
 	if s.CheckIfUserExists(number) {
@@ -113,7 +116,7 @@ func (s *System) GetUser(number string) (*users.User, error) {
 }
 
 func (s *System) UpdateUser(number, pin string) error {
-	if err := s.getUsers(); err != nil {
+	if err := s.GetUsers(); err != nil {
 		return err
 	}
 
@@ -122,18 +125,18 @@ func (s *System) UpdateUser(number, pin string) error {
 	}
 
 	user := s.Users.ReadUser(number)
+	user.Pin = pin
 
-	return s.Update(s.Users.Table, &user)
+	return s.Update(s.Users.Table, user, "pin")
 }
 
 func (s *System) DeleteUser(number string) error {
-	if err := s.getUsers(); err != nil {
-		return err
-	}
+
+	user := s.Users.ReadUser(number)
 
 	if err := s.Users.DeleteUser(number); err != nil {
 		return err
 	}
-	user := s.Users.ReadUser(number)
-	return s.Delete(s.Users.Table, &user)
+
+	return s.Delete(s.Users.Table, user)
 }

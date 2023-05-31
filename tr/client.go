@@ -411,6 +411,7 @@ func (api *APIClient) CashAvailableforPayout() (int, error) {
 	return api.Subscribe(map[string]interface{}{"type": "availableCashForPayout"})
 }
 
+// Deprecated: Use CompactPortfolio instead
 func (api *APIClient) Portfolio() (int, error) {
 	return api.Subscribe(map[string]interface{}{"type": "portfolio"})
 }

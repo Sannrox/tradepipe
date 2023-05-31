@@ -112,11 +112,12 @@ func (s *Scylla) GetAll(metaTable *table.Table) *gocqlx.Queryx {
 
 func (s *Scylla) Delete(metaTable *table.Table, model interface{}) error {
 	q := s.Session.Query(metaTable.Delete()).BindStruct(model)
+	logrus.Info(q.Query)
 	return q.ExecRelease()
 }
 
-func (s *Scylla) Update(metaTable *table.Table, model interface{}) error {
-	q := s.Session.Query(metaTable.Update()).BindStruct(model)
+func (s *Scylla) Update(metaTable *table.Table, model interface{}, columns ...string) error {
+	q := s.Session.Query(metaTable.Update(columns...)).BindStruct(model)
 	return q.ExecRelease()
 }
 

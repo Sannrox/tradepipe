@@ -118,6 +118,7 @@ func (s *Server) Verify(ctx context.Context, in *login.TwoFAAsks) (*login.TwoFAR
 
 	user, err := s.System.GetUser(client.Creds.Number)
 	if err != nil {
+		logrus.Info("User not found, creating new user")
 		if err := s.System.CreateNewUser(client.Creds.Number, client.Creds.Pin); err != nil {
 			logrus.Error("Failed to create new user: ", err)
 			return nil, err

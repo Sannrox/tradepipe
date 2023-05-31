@@ -30,6 +30,15 @@ func (u *User) SetNumber(number string) {
 	u.Number = number
 }
 
+func (u *Users) GetUserCount() int {
+	if u == nil {
+		return 0
+	}
+
+	users := *u
+	return len(users)
+}
+
 func (u *Users) CheckIfUserExists(number string) bool {
 	if u == nil {
 		return false
@@ -50,14 +59,23 @@ func (u *Users) AddUser(user *User) error {
 	return nil
 }
 
-func (u *Users) CreateNewUser(number, pin string) User {
-	var user = User{
+func (u *Users) CreateNewUser(number, pin string) (*User, error) {
+	switch {
+	case pin == "":
+		return nil, fmt.Errorf("Pin cannot be empty")
+	case len(pin) != 4:
+		return nil, fmt.Errorf("Pin must be 4 digits")
+
+	case number == "":
+		return nil, fmt.Errorf("Number cannot be empty")
+	}
+	var user = &User{
 		Id:     gocql.TimeUUID(),
 		Number: number,
 		Pin:    pin,
 	}
 
-	return user
+	return user, nil
 }
 
 func (u *Users) ReadUser(number string) *User {
@@ -77,7 +95,7 @@ func (u *Users) ReadUser(number string) *User {
 
 func (u *Users) UpdateUser(number, pin string) error {
 
-	if u.CheckIfUserExists(number) {
+	if !u.CheckIfUserExists(number) {
 		return fmt.Errorf("User with number %v does not exist", number)
 	}
 
@@ -88,9 +106,8 @@ func (u *Users) UpdateUser(number, pin string) error {
 		return fmt.Errorf("User with number %v does not exist", number)
 	case user.Pin == "":
 		return fmt.Errorf("User with number %v does not have a pin", number)
-	}
-
-	switch {
+	case number == "":
+		return fmt.Errorf("Number cannot be empty")
 	case pin == "":
 		return fmt.Errorf("Pin cannot be empty")
 	case len(pin) != 4:
@@ -98,20 +115,13 @@ func (u *Users) UpdateUser(number, pin string) error {
 	}
 	user.SetPin(pin)
 
-	switch {
-	case number == "":
-		return fmt.Errorf("Number cannot be empty")
-	case len(number) != 10:
-		return fmt.Errorf("Number must be 10 digits")
-	}
-
 	user.SetNumber(number)
 
 	return nil
 }
 
 func (u *Users) DeleteUser(number string) error {
-	if u.CheckIfUserExists(number) {
+	if !u.CheckIfUserExists(number) {
 		return fmt.Errorf("User with number %v does not exist", number)
 	}
 

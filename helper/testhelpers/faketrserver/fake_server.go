@@ -366,7 +366,7 @@ func (s *FakeServer) WebSocket(w http.ResponseWriter, r *http.Request) {
 						returner = fmt.Sprintf("%d %s %s", subscriptionId, A.String(), string(detailJSON))
 					}
 
-				case "portfolio":
+				case "compactPortfolio":
 					logrus.Info("Portfolio Subscription")
 					portfolio := s.Portfolio.GetPortfolio()
 					logrus.Info(portfolio)
