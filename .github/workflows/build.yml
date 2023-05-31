@@ -4,10 +4,10 @@ name: Build and Release
 on:
   push:
     branches: []
-# on:
-#   create:
-#     tags:
-#       - 'v*'
+on:
+  create:
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -20,22 +20,28 @@ jobs:
       - name: Build Go binary
         run: ./build/release-images.sh
 
-      - name: Archive tradegrpc linux amd64
+      - name: Archive tradegear linux amd64
         uses: actions/upload-artifact@v2
         with:
-          name: tradegrpc-linux-amd64
-          path: _output/bin/linux/amd64/tradegrpc
+          name: tradegear-linux-amd64
+          path: _output/bin/linux/amd64/tradegear
 
-
-      - name: Archive tradegrpc linux arm64
+      - name: Archive tradegear linux arm64
         uses: actions/upload-artifact@v2
         with:
-          name: tradegrpc-linux-arm64
+          name: tradegear-linux-arm64
           path: _output/bin/linux/arm64/tradegrpc
 
-      # - name: Push Docker container to registry
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: myapp:${{ github.ref }}
+      - name: Archive tradepipe linux arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradepipe-linux-arm64
+          path: _output/bin/linux/arm64/tradepipe
+
+     - name: Archive tradepipe linux amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradepipe-linux-amd64
+          path: _output/bin/linux/amd64/tradepipe
+
+
