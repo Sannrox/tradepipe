@@ -6,11 +6,7 @@ import (
 	"github.com/gocql/gocql"
 )
 
-const (
-	tableName = "users"
-)
-
-type Users map[string]*User
+type Users map[string]User
 
 type User struct {
 	Id     gocql.UUID
@@ -55,7 +51,8 @@ func (u *Users) AddUser(user *User) error {
 		return fmt.Errorf("User with number %v already exists", user.Number)
 	}
 
-	(*u)[user.Number] = user
+	(*u)[user.Number] = *user
+
 	return nil
 }
 
@@ -78,6 +75,15 @@ func (u *Users) CreateNewUser(number, pin string) (*User, error) {
 	return user, nil
 }
 
+func (u *Users) GetAllUsers() Users {
+	if u == nil {
+		return nil
+	}
+
+	users := *u
+	return users
+}
+
 func (u *Users) ReadUser(number string) *User {
 	if u == nil {
 		return nil
@@ -89,7 +95,7 @@ func (u *Users) ReadUser(number string) *User {
 		return nil
 	}
 
-	return user
+	return &user
 
 }
 
@@ -116,6 +122,8 @@ func (u *Users) UpdateUser(number, pin string) error {
 	user.SetPin(pin)
 
 	user.SetNumber(number)
+
+	(*u)[number] = *user
 
 	return nil
 }

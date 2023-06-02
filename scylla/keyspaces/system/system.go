@@ -9,6 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const usersTableName = "users"
+
 type System struct {
 	scylla.Scylla
 	Users
@@ -37,12 +39,12 @@ func NewSystemKeyspace(contactPoint string, port int) (*System, error) {
 
 func (s *System) CreateUserTable() error {
 	logrus.Debug("creating user table")
-	if err := s.CreateTable("users", "id uuid, number text, pin text, PRIMARY KEY (id, number)"); err != nil {
+	if err := s.CreateTable(usersTableName, "id uuid, number text, pin text, PRIMARY KEY (id, number)"); err != nil {
 		return err
 	}
 	logrus.Debug("created user table")
 	tableMeta := table.Metadata{
-		Name: "users", Columns: []string{"id", "number", "pin"},
+		Name: usersTableName, Columns: []string{"id", "number", "pin"},
 		PartKey: []string{"id"},
 		SortKey: []string{"number"},
 	}
@@ -58,55 +60,56 @@ func (s *System) CreateTables() error {
 	return nil
 }
 
-func (s *System) CreateNewUser(number, pin string) error {
+func (s *System) CreateUser(number, pin string) error {
 	if s.Users.Users == nil {
 		s.Users.Users = users.NewUsers()
 	}
-	user, err := s.Users.CreateNewUser(number, pin)
-	if err != nil {
-		return err
-	}
-	if err := s.Users.AddUser(user); err != nil {
-		return err
-	}
+	if !s.CheckIfUserExists(number) {
+		user, err := s.Users.CreateNewUser(number, pin)
+		if err != nil {
+			return err
+		}
+		if err := s.Users.AddUser(user); err != nil {
+			return err
+		}
 
-	return s.Insert(s.Users.Table, &user)
+		return s.Insert(s.Users.Table, &user)
+	} else {
+		return fmt.Errorf("User with number %v already exists", number)
+	}
 }
 
 func (s *System) GetUsers() error {
 	var allUsers []users.User
-	if s.Users.Users == nil {
-		s.Users.Users = users.NewUsers()
-		exists, err := s.Scylla.CheckIfTableExits("user")
-		if err != nil {
-			return err
-		}
-		if exists {
+	s.Users.Users = users.NewUsers()
+	exists := s.Scylla.CheckIfTableExits(usersTableName)
+	if exists {
+		if len(*s.Users.Users) == 0 {
 			q := s.Scylla.GetAll(s.Users.Table)
 			if err := q.SelectRelease(&allUsers); err != nil {
 				return err
 			}
-
+			for _, user := range allUsers {
+				if !s.Users.CheckIfUserExists(user.Number) {
+					if err := s.Users.AddUser(&user); err != nil {
+						return err
+					}
+				}
+			}
 		}
-		for _, user := range allUsers {
-			s.Users.AddUser(&user)
-		}
-	}
-	q := s.Scylla.GetAll(s.Users.Table)
-	if err := q.SelectRelease(&allUsers); err != nil {
-		return err
-	}
 
-	for _, user := range allUsers {
-		s.Users.AddUser(&user)
+	} else {
+		return fmt.Errorf("user table does not exist")
 	}
 
 	return nil
 }
 
 func (s *System) GetUser(number string) (*users.User, error) {
-	if err := s.GetUsers(); err != nil {
-		return nil, err
+	if s.Users.Users == nil {
+		if err := s.GetUsers(); err != nil {
+			return nil, err
+		}
 	}
 	if s.CheckIfUserExists(number) {
 		return s.Users.ReadUser(number), nil
@@ -116,8 +119,10 @@ func (s *System) GetUser(number string) (*users.User, error) {
 }
 
 func (s *System) UpdateUser(number, pin string) error {
-	if err := s.GetUsers(); err != nil {
-		return err
+	if s.Users.Users == nil {
+		if err := s.GetUsers(); err != nil {
+			return err
+		}
 	}
 
 	if err := s.Users.UpdateUser(number, pin); err != nil {

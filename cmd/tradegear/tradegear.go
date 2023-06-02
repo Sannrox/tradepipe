@@ -65,5 +65,7 @@ func NewTadeGrpcCmd() *cobra.Command {
 
 func main() {
 	cmd := NewTadeGrpcCmd()
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		fmt.Println(err)
+	}
 }

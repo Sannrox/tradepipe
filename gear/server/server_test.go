@@ -21,6 +21,7 @@ import (
 const startPort = 9030
 const endPort = 9040
 
+//nolint:all
 func TestGrpcServer(t *testing.T) {
 	done := make(chan struct{})
 	fakeTrServerPort, err := utils.FindFreePort(3443, 4443)

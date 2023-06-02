@@ -75,8 +75,5 @@ func (p *Portfolios) GetPosition(currentTable *table.Table, position tr.Position
 
 func (p *Portfolios) CheckIfPositionExists(currentTable *table.Table, position tr.Position) bool {
 	_, err := p.GetPosition(currentTable, position)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

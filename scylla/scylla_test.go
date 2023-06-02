@@ -229,3 +229,45 @@ func TestClose(t *testing.T) {
 	}
 
 }
+
+func TestCheckIfTableExits(t *testing.T) {
+	ctx := context.Background()
+
+	containerName, port, err := container.SetUpScylla(ctx, startPort, endPort)
+	if err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	t.Cleanup(func() {
+		if err := container.TearDownScylla(containerName, ctx); err != nil {
+			t.Fatal(fmt.Errorf("failed to tear down scylla container: %w", err))
+		}
+	})
+	if err := TryToConnectWithRetry(ContactPoint, port, 10, 10*time.Second); err != nil {
+		t.Errorf("Error: %s", err)
+	}
+
+	if err := CreateKeyspace(ContactPoint, port, "test"); err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	s, err := NewScyllaDbWithPool(ContactPoint, port, "test", 10)
+	if err != nil {
+		t.Errorf("Error: %s", err)
+	}
+
+	t.Run("Table does not exist", func(t *testing.T) {
+		if s.CheckIfTableExits("test_table") {
+			t.Errorf("Error: table should not exist")
+		}
+	})
+
+	t.Run("Table does exist", func(t *testing.T) {
+		if err := s.CreateTable("test_table", "id text, name text, PRIMARY KEY (id)"); err != nil {
+			t.Errorf("Error: %s", err)
+		}
+
+		if !s.CheckIfTableExits("test_table") {
+			t.Errorf("Error: table should exist")
+		}
+
+	})
+}

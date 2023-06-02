@@ -106,11 +106,7 @@ func (s *SavingsPlans) GetPlan(currentTable *table.Table, plan tr.SavingsPlan) (
 
 func (s *SavingsPlans) CheckIfPlanExists(currentTable *table.Table, plan tr.SavingsPlan) bool {
 	_, err := s.GetPlan(currentTable, plan)
-	if err == gocql.ErrNotFound {
-		return false
-	}
-
-	return true
+	return err != gocql.ErrNotFound
 }
 
 type SavingsPlanFlat struct {

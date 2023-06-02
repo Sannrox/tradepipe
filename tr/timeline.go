@@ -140,8 +140,8 @@ func (t *TimeLine) LoadNextTimeline(response map[string]interface{}, maxAgeTimes
 }
 
 func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) error {
-
-	re, err := t.RequestTimeLineDetails(5, t.SinceTimestamp)
+	firstRequestNumbers := 5
+	re, err := t.RequestTimeLineDetails(&firstRequestNumbers, t.SinceTimestamp)
 	if err != nil {
 		return err
 	}
@@ -179,8 +179,8 @@ func (t *TimeLine) LoadTimeLineDetails(ctx context.Context, data chan Message) e
 	}
 }
 
-func (t *TimeLine) RequestTimeLineDetails(numToRequest int, maxAgeTimestamp int64) (int, error) {
-	for numToRequest > 0 {
+func (t *TimeLine) RequestTimeLineDetails(numToRequest *int, maxAgeTimestamp int64) (int, error) {
+	for *numToRequest > 0 {
 		if len(t.TimeLineEvents) == t.SumTotalOfTimeLineEventsWDocsAndWithoutDocs() {
 			logrus.Info("All timeline details requested")
 			return -1, nil
@@ -189,7 +189,7 @@ func (t *TimeLine) RequestTimeLineDetails(numToRequest int, maxAgeTimestamp int6
 
 			if WithDocs := t.FindTimeLineEventsWithDocs(event, maxAgeTimestamp); WithDocs {
 
-				numToRequest--
+				*numToRequest--
 				t.RequestedDetail++
 				id := event.Data.ID
 				return t.Client.TimelineDetail(id)
@@ -246,7 +246,7 @@ func (t *TimeLine) loadMoreTimeLineDetails(maxAgeTimestamp int64) (int, error) {
 		} else {
 			num = 5
 		}
-		re, err := t.RequestTimeLineDetails(num, 0)
+		re, err := t.RequestTimeLineDetails(&num, 0)
 		if err != nil {
 			return -1, err
 		}

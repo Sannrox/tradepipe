@@ -7,7 +7,6 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/scylladb/gocqlx/v2"
-	"github.com/scylladb/gocqlx/v2/qb"
 	"github.com/scylladb/gocqlx/v2/table"
 	"github.com/sirupsen/logrus"
 )
@@ -121,21 +120,10 @@ func (s *Scylla) Update(metaTable *table.Table, model interface{}, columns ...st
 	return q.ExecRelease()
 }
 
-func (s *Scylla) CheckIfTableExits(tableName string) (bool, error) {
-
-	query, names := qb.Select("system_schema.tables").Columns("table_name").Where(qb.EqLit("keyspace_name", s.Keyspace)).Where(qb.EqLit("table_name", tableName)).Limit(1).ToCql()
-	iter := s.Session.Query(query, names).Iter()
-
-	exists := iter.Scan(nil)
-	if iter.Close() != nil {
-		return false, iter.Close()
-	}
-
-	if exists {
-		return true, nil
-	} else {
-		return false, nil
-	}
+func (s *Scylla) CheckIfTableExits(tableName string) bool {
+	query := fmt.Sprintf("SELECT table_name FROM system_schema.tables WHERE keyspace_name='%s' AND table_name='%s' ALLOW FILTERING", s.Keyspace, tableName)
+	err := s.Session.Query(query, nil).Scan(nil)
+	return err != gocql.ErrNotFound
 }
 func (s *Scylla) CreateTable(tablename, schema string) error {
 	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", tablename, schema)

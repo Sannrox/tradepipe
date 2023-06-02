@@ -172,10 +172,7 @@ func (t *Timeline) GetTimelineEvent(currentTable *table.Table, te tr.TimeLineEve
 
 func (t *Timeline) CheckIfTimelineEventExists(currentTable *table.Table, te tr.TimeLineEvent) bool {
 	_, err := t.GetTimelineEvent(currentTable, te)
-	if err == gocql.ErrNotFound {
-		return false
-	}
-	return true
+	return err != gocql.ErrNotFound
 }
 
 func (t *Timeline) GetTimelineDetail(currentTable *table.Table, td tr.TimelineDetail) (*tr.TimelineDetail, error) {
@@ -200,10 +197,7 @@ func (t *Timeline) GetTimelineDetail(currentTable *table.Table, td tr.TimelineDe
 
 func (t *Timeline) CheckIfTimelineDetailExists(currentTable *table.Table, td tr.TimelineDetail) bool {
 	_, err := t.GetTimelineDetail(currentTable, td)
-	if err == gocql.ErrNotFound {
-		return false
-	}
-	return true
+	return err != gocql.ErrNotFound
 }
 
 type FlatTimeLineEvent struct {

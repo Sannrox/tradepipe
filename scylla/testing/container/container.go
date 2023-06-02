@@ -17,6 +17,10 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+const (
+	version = "5.1.7"
+)
+
 func SetUpScylla(ctx context.Context, startPort, endPort int) (string, int, error) {
 
 	id := uuid.New().String()
@@ -28,13 +32,13 @@ func SetUpScylla(ctx context.Context, startPort, endPort int) (string, int, erro
 		return "", 0, err
 	}
 
-	imageExists, err := docker.CheckIfImageExists(ctx, dockerClient, "scylladb/scylla:latest")
+	imageExists, err := docker.CheckIfImageExists(ctx, dockerClient, "scylladb/scylla:"+version)
 	if err != nil {
 		return "", 0, err
 	}
 
 	if !imageExists {
-		err = docker.PullDockerImage(ctx, dockerClient, "scylladb/scylla:latest")
+		err = docker.PullDockerImage(ctx, dockerClient, "scylladb/scylla:"+version)
 		if err != nil {
 			return "", 0, err
 		}
@@ -75,7 +79,7 @@ func SetUpScylla(ctx context.Context, startPort, endPort int) (string, int, erro
 	}
 
 	containerConfig := &container.Config{
-		Image: "scylladb/scylla:latest",
+		Image: "scylladb/scylla:" + version,
 		Tty:   true,
 		ExposedPorts: nat.PortSet{
 			"9042/tcp": struct{}{},

@@ -171,6 +171,7 @@ func (s *FakeServer) RemoveCertAndKeyForFakeServer() error {
 	return nil
 }
 
+//nolint:all
 func (s *FakeServer) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
