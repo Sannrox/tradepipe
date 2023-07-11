@@ -8,34 +8,39 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type PortfolioLoader struct {
+	Client *APIClient
+	Portfolio
+}
 type Portfolio struct {
-	Client   *APIClient
-	Postions []Position
-	NetValue float64
+	Positions []Position `json:"positions"`
 }
 
-func NewPortfolio(client *APIClient) *Portfolio {
-	return &Portfolio{
-		Client:   client,
-		Postions: []Position{},
-		NetValue: 0,
+type Position struct {
+	InstrumentID string  `json:"instrumentId"`
+	NetSize      float64 `json:"netSize"`
+	AverageBuyIn float64 `json:"averageBuyIn"`
+}
+
+func NewPortfolioLoader(client *APIClient) *PortfolioLoader {
+	return &PortfolioLoader{
+		Client: client,
+		Portfolio: Portfolio{
+			Positions: []Position{},
+		},
 	}
 }
 
 func (p *Portfolio) GetPositions() []Position {
-	return p.Postions
-}
-
-func (p *Portfolio) GetNetValue() float64 {
-	return p.NetValue
+	return p.Positions
 }
 
 func (p *Portfolio) GetPositionsAsBytes() ([]byte, error) {
-	return json.Marshal(p.Postions)
+	return json.Marshal(p.Positions)
 }
 
-func (p *Portfolio) LoadPortfolio(ctx context.Context, data chan Message) error {
-	_, err := p.Client.Portfolio()
+func (p *PortfolioLoader) LoadPortfolio(ctx context.Context, data chan Message) error {
+	_, err := p.Client.CompactPortfolio()
 	if err != nil {
 		return err
 	}
@@ -44,8 +49,8 @@ func (p *Portfolio) LoadPortfolio(ctx context.Context, data chan Message) error 
 		case <-ctx.Done():
 			return nil
 		case msg := <-data:
-			if msg.Subscription["type"] == "portfolio" {
-				var portfolio RawPortfolio
+			if msg.Subscription["type"] == "compactPortfolio" {
+				var portfolio Portfolio
 				logrus.Info(msg.Payload)
 				b, err := json.Marshal(msg.Payload)
 				if err != nil {
@@ -55,8 +60,7 @@ func (p *Portfolio) LoadPortfolio(ctx context.Context, data chan Message) error 
 				if err != nil {
 					return fmt.Errorf("%w | %s", err, string(b))
 				}
-				p.NetValue = portfolio.NetValue
-				p.Postions = portfolio.Positions
+				p.Portfolio = portfolio
 				return nil
 			}
 		}

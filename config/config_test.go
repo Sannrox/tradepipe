@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -21,7 +20,8 @@ Bar = 123
 `
 
 	// Create a temporary file for the configuration
-	file, err := ioutil.TempFile("", "config_test")
+
+	file, err := os.CreateTemp("", "config_test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,9 @@ Bar = 123
 	}
 
 	// Read the configuration from the file
-	ReadConfigFromFile(file.Name(), &cfg)
+	if err := ReadConfigFromFile(file.Name(), &cfg); err != nil {
+		t.Fatal(err)
+	}
 
 	// Ensure the configuration was parsed correctly
 	if cfg.Foo != "hello" {

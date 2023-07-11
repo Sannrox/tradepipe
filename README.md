@@ -1,54 +1,34 @@
 # TRADEPIPE
 
+[![Test and validate](https://github.com/Sannrox/tradepipe/actions/workflows/test.yml/badge.svg)](https://github.com/Sannrox/tradepipe/actions/workflows/test.yml)
+
 This is a microservice for the private API of the Trade Republic online brokerage. I am not affiliated with Trade Republic Bank GmbH.
 
 Inspired by https://github.com/marzzzello/pytr
 
-## Features
 
-### Overview
+## Usage
 
-- [GRPC server](#grpc-server) - [protobuffer](./api/proto/tradepipe.proto)
-- [HTTP server](#http-server) - [openapi](./api/openapi/openapi.yaml)
-- [Single command](#single-command)
+If you only want to download your bank documents, it is enough to do the following to build the binary: `make tradepipe`
 
-### GRPC server
-#### Usage
-```
-# Build the binary 
-$ make tradegrpc
+If you want to use the docker compose setup with the GRPC server and database you should follow these steps:
 
-# Run the command 
-$ ./build/bin/tradegrpc-<GOOS>-<GOHOSTARCH>-<VERSION>  --grpc 
-```
+1. `./build/release-images.sh`
+2. `./deployments/get-trade.sh`
 
-Use the generate client from https://github.com/Sannrox/tradepipe/grpc/pb
+**Note**: This `get-trade.sh` uses `docker system prune`
 
-For example take a look at this [fakeclient](./helper/testhelpers/fakegrpcclient/fake_client.go)
-### HTTP server 
-#### Usage 
+3. To start the compose file: `./deployments/trade-up.sh`
+4. To stop the compose environment: `./deployments/trade-down.sh`
+## Contributing
 
-```
-# Build the binary 
-$ make tradehttp
+Please see [here](./CONTRIBUTING.md) for details on submitting patches and the contribution workflow.
 
-# Run the command 
-$ ./build/bin/tradehttp-<GOOS>-<GOHOSTARCH>-<VERSION> 
-```
-Use the [openapi-spec](./api/openapi/openapi.yaml) to build/generate a client
+Feature requests are welcome.
+
+## Roadmap
+
+Depends on future feature requests
 
 
-### Single command
 
-#### Usage
-
-```
-# Build the binary 
-$ make tradepipe
-
-# Run the command 
-$ ./build/bin/tradepipe-<GOOS>-<GOHOSTARCH>-<VERSION>  <TR-NUMBER> <TR-PIN>
-
-# Need to verify with 2FA
-Enter Token: <token>
-```

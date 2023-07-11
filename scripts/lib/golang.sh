@@ -31,11 +31,26 @@ BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
 
 
+function golang::setup_environment(){
+    export GOPATH="${GOPATH:-${HOME}/go}"
+
+    export GOCACHE="${GOCACHE:-${HOME}/.cache/go-build}"
+    export GOMODCACHE="${GOMODCACHE:-${HOME}/cache/go/mod}"
+
+    export PATH="${GOPATH}/bin:${PATH}"
+
+    GOROOT=$(go env GOROOT)
+
+    unset GOBIN
+
+}
+
+
 
 function golang::server_targets(){
     local targets=(
-        cmd/tradegrpc
-        cmd/tradehttp
+        cmd/tradegear
+        cmd/tradepipe
         )
 
     echo "${targets[@]}"
@@ -51,7 +66,7 @@ function golang::build_binaries(){
         local host_platform
         host_platform="$(go env GOOS)/$(go env GOARCH)"
 
-        local -a platform 
+        local -a platform
         IFS=" " read -r -a platform <<< "${BUILD_PLATFORMS:-}"
         if [[ ${#platform[@]} -eq 0 ]]; then
             platform=("${host_platform}")
@@ -59,10 +74,10 @@ function golang::build_binaries(){
         fi
 
         local -a targets=()
-        for arg; do 
+        for arg; do
             if [[ "${arg}" == -* ]]; then
                 continue
-            else 
+            else
                 targets+=("${arg}")
             fi
         done
@@ -125,7 +140,7 @@ function golang::build_binary() {
     build_cmd=(go build -o "${target}" -tags "${GO_BUILDTAGS}" --ldflags "${ldflags}" ${GO_BUILDMODE} "${source}" )
 
     build_cmd_output=$("${build_cmd[@]}" 2>&1) || {
-        cat <<EOF >&2 
+        cat <<EOF >&2
 Error building ${target_name}:
 ${build_cmd_output}
 EOF

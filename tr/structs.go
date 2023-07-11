@@ -26,6 +26,10 @@ type TimeLineEvent struct {
 		CashChangeAmount float64       `json:"cashChangeAmount,omitempty"`
 	} `json:"data"`
 }
+type Action struct {
+	Type    string      `json:"type,omitempty"`
+	Payload interface{} `json:"payload,omitempty"`
+}
 
 type TimelineDetail struct {
 	ID           string `json:"id"`
@@ -48,24 +52,6 @@ type Doc struct {
 	} `json:"action"`
 	ID          string `json:"id"`
 	PostboxType string `json:"postboxType"`
-}
-
-type RawPortfolio struct {
-	NetValue                     float64    `json:"netValue"`
-	Positions                    []Position `json:"positions"`
-	ReferenceChangeProfit        int        `json:"referenceChangeProfit"`
-	ReferenceChangeProfitPercent int        `json:"referenceChangeProfitPercent"`
-	UnrealisedCost               float64    `json:"unrealisedCost"`
-	UnrealisedProfit             float64    `json:"unrealisedProfit"`
-	UnrealisedProfitPercent      float64    `json:"unrealisedProfitPercent"`
-}
-
-type Position struct {
-	InstrumentID          string  `json:"instrumentId"`
-	NetSize               float64 `json:"netSize"`
-	NetValue              float64 `json:"netValue"`
-	RealisedProfit        int     `json:"realisedProfit"`
-	UnrealisedAverageCost float64 `json:"unrealisedAverageCost"`
 }
 
 type SavingsPlan struct {

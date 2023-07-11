@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -37,6 +38,11 @@ func SetLogFile(filname string) error {
 		return err
 	}
 
-	logrus.SetOutput(file)
+	logrus.SetOutput(io.MultiWriter(os.Stdout, file))
 	return nil
+}
+
+func ErrorWrapper(err error, msg string) error {
+	logrus.Errorf(msg+": %s", err.Error())
+	return err
 }

@@ -1,8 +1,11 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # shellcheck disable=SC2034
 
-set -eu
+set -o errexit
+set -o nounset
+set -o pipefail
+
 
 ROOT_PATH=$(dirname "$0")/../..
 
@@ -15,7 +18,7 @@ run_cmd(){
 run_validate(){
     for script in $(echo "$1"); do
             echo  "Validating $(basename "${script}")"
-            run_cmd "${script}" || true
+            run_cmd "${script}"
     done
 }
 

@@ -27,49 +27,59 @@ var (
 type TradePipeOptions struct {
 	Debug       bool
 	LogFile     string
-	OutputPath  string
-	HistoryFile string
+	Outpath     string
+	Historyfile string
 }
 
 func NewTradePipeCmd() *cobra.Command {
 	opts := &TradePipeOptions{}
 	cmd := &cobra.Command{
-		Use:              "tradepipe [number] [pin]",
-		Short:            "tradepipe is a command line tool for interacting with the TradeMe API",
-		Long:             `tradepipe is a command line tool for interacting with the TradeMe API.`,
-		TraverseChildren: true,
-		Args:             cobra.ExactArgs(2),
-		Version:          fmt.Sprintf("%s, built: %s ", Version, GitCommit),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Use:     "tradepipe [number] [pin]",
+		Short:   "Download all files from the Trade Republic API",
+		Long:    `tradepipe is a command line tool for interacting with the Trade Republic API.`,
+		Version: fmt.Sprintf("%s, built: %s ", Version, GitCommit),
+		Args:    cobra.ExactArgs(2),
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+
 			if opts.Debug {
 				logger.Enable()
 			}
 			if len(opts.LogFile) != 0 {
 				if err := logger.SetLogFile(opts.LogFile); err != nil {
-					return err
+					panic(err)
 				}
 			}
-
-			if len(opts.OutputPath) == 0 {
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(opts.Outpath) == 0 {
 				if path, err := os.Getwd(); err != nil {
 					return err
 				} else {
 					logrus.Debug("No path set using current directory", path)
-					opts.OutputPath = path
+					opts.Outpath = path
 				}
 			}
-			return ExecuteCLI(args, opts.OutputPath, opts.HistoryFile)
+			if len(opts.Historyfile) == 0 {
+				return fmt.Errorf("historyfile cannot be empty")
+			}
+
+			return ExecuteCLI(args, opts.Outpath, opts.Historyfile)
 		},
 	}
 	cmd.Flags().BoolVarP(&opts.Debug, "debug", "d", false, "Enable debug logging")
-	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "", "Log file to write to")
-	cmd.Flags().StringVarP(&opts.OutputPath, "out", "o", "", "Directory in which you want to write the files")
-	cmd.Flags().StringVar(&opts.HistoryFile, "history", "history.txt", "From which you want to write and read the history")
+	cmd.Flags().StringVarP(&opts.LogFile, "logfile", "l", "", "If set, write logs to this file instead of stdout")
+	cmd.Flags().StringVarP(&opts.Outpath, "outpath", "o", "", "Path to store the downloaded files")
+	cmd.Flags().StringVarP(&opts.Historyfile, "historyfile", "f", "history.txt", "Path to store the history file")
+
 	return cmd
 }
 
-func ExecuteCLI(args []string, outpath string, historyfile string) error {
+func main() {
+	cmd := NewTradePipeCmd()
+	cmd.Execute()
+}
 
+func ExecuteCLI(args []string, outpath string, historyfile string) error {
 	number := args[0]
 	pin := args[1]
 
@@ -114,9 +124,4 @@ func ExecuteCLI(args []string, outpath string, historyfile string) error {
 	}
 
 	return nil
-}
-
-func main() {
-	cmd := NewTradePipeCmd()
-	cmd.Execute()
 }

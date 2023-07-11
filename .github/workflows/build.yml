@@ -1,0 +1,47 @@
+name: Build and Release
+
+
+on:
+  push:
+    branches: []
+on:
+  create:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Go binary
+        run: ./build/release-images.sh
+
+      - name: Archive tradegear linux amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradegear-linux-amd64
+          path: _output/bin/linux/amd64/tradegear
+
+      - name: Archive tradegear linux arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradegear-linux-arm64
+          path: _output/bin/linux/arm64/tradegrpc
+
+      - name: Archive tradepipe linux arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradepipe-linux-arm64
+          path: _output/bin/linux/arm64/tradepipe
+
+     - name: Archive tradepipe linux amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: tradepipe-linux-amd64
+          path: _output/bin/linux/amd64/tradepipe
+
+

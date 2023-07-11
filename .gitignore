@@ -7,3 +7,4 @@ tradepipe.txt
 _output
 .cache/
 */**/fakeserver.log
+deployments/data/

@@ -6,42 +6,27 @@ SHELL := /usr/bin/env bash -o errexit -o pipefail -o nounset
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-.EXPORT_ALL_VARIABLES:
-
-
-.PHONY: test lint deps format build coverage coverhtml grpc rest
-
 
 all:
 	./scripts/make-targets/build.sh $(TARGETS)
 
-GO ?= $(shell which go)
+test:
+	./scripts/make-targets/test.sh
 
-ifneq ($(GO), )
-	GOFMT ?= $(GO)fmt
-	GOLIST ?= $(GO) list
-endif
+validate:
+	scripts/make-targets/validate.sh
 
+update:
+	./scripts/make-targets/update.sh
 
-
-deps: ## Get the dependencies
-	@echo ">> getting dependencies for core"
-	$(GO) get $(GOOPTS) -t ./...
-	go install mvdan.cc/gofumpt@latest
-	go install github.com/daixiang0/gci@latest
-
-fmt: ## Formates the code
-	@echo ">> formatting code"
-	gofumpt -l -w .
-	gci -w .
-	$(GOLIST) -f {{.Dir}} ./... | xargs $(GOFMT) -w -s -d
-
+clean:
+	./scripts/make-targets/clean.sh
 
 define CMD_HELP_INFO
 # Add rules for all directories in cmd/
 #
 # Example:
-#   make  tradepipe tradegrpc tradehttp
+#   make  tradepipe tradegear tradeapi
 endef
 EXCLUDE_TARGET=
 CMD_TARGET = $(notdir $(abspath $(wildcard cmd/*/)))
@@ -55,19 +40,4 @@ $(CMD_TARGET): ## $(CMD_TARGET)
 	./scripts/make-targets/build.sh cmd/$@
 endif
 
-test: ## Run unittests
-	@echo ">> running unit tests"
-	./scripts/make-targets/test.sh
-
-validate: ## Validate the code
-	@echo ">> validating code"
-	scripts/make-targets/validate.sh
-
-clean:
-	@echo ">> clean up"
-	./scripts/make-targets/clean.sh
-
-
-help: ## Display this help screen
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 

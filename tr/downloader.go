@@ -75,7 +75,7 @@ func (d *Downloader) Download(doc Doc, titleText string, subTitleText string, su
 	}
 	var dir string
 	if len(subFolder) != 0 {
-		dir = d.OutputPath + subFolder + "/"
+		dir = d.OutputPath + "/" + subFolder + "/"
 	} else {
 		dir = d.OutputPath
 	}

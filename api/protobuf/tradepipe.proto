@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "api/protobuf/login/login.proto";
+import "api/protobuf/timeline/timeline.proto";
+import "api/protobuf/portfolio/portfolio.proto";
+import "api/protobuf/savingsplan/savingsplan.proto";
+import "google/protobuf/empty.proto";
+
+
+
+package pb;
+
+option go_package = "github.com/Sannrox/tradepipe/gear/protobuf";
+
+
+
+service TradePipe {
+    rpc Status(google.protobuf.Empty) returns (google.protobuf.Empty){}
+    rpc Login(login.Credentials) returns (login.ProcessId){}
+    rpc Verify(login.TwoFAAsks) returns (login.TwoFAReturn){}
+    rpc ReadTimeline(timeline.RequestTimeline) returns (timeline.ResponseTimeline){}
+    rpc UpdateTimeline(timeline.RequestTimelineUpdate) returns (google.protobuf.Empty){}
+    rpc ReadTimelineDetails(timeline.RequestTimelineDetails) returns (timeline.ResponseTimelineDetails){}
+    rpc ReadPortfolio(portfolio.RequestPortfolio) returns (portfolio.ResponsePortfolio){}
+    rpc UpdatePortfolio(portfolio.RequestPortfolioUpdate) returns (google.protobuf.Empty){}
+    rpc ReadSavingsPlans(savingsplan.RequestSavingsplan) returns (savingsplan.ResponseSavingsplan){}
+    rpc UpdateSavingsPlans(savingsplan.RequestSavingsplanUpdate) returns (google.protobuf.Empty){}
+}
+
