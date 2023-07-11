@@ -9,6 +9,7 @@ ROOT_PATH="$(dirname "$0")/../.."
 ROOT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}")/.. && pwd )
 DEPLOYMENTS_PATH="${ROOT_PATH}/deployments"
 ENV_VARS_PATH="${DEPLOYMENTS_PATH}/env_vars"
+HOST_ARCH=$(uname -m)
 
 readonly SECRETS=()
 
@@ -67,8 +68,8 @@ function deployments::docker_load_images(){
     deployments::docker_clean_simple
 
     for target in $(deployments::get_docker_containers); do
-        if [ -f "${ROOT_PATH}/_output/release-images/amd64/${target}.tar" ]; then
-           docker load -i "${ROOT_PATH}/_output/release-images/amd64/${target}.tar"
+        if [ -f "${ROOT_PATH}/_output/release-images/${HOST_ARCH}/${target}.tar" ]; then
+           docker load -i "${ROOT_PATH}/_output/release-images/${HOST_ARCH}/${target}.tar"
         else
            echo "Image ${target} not available in tar format"
            return 1
